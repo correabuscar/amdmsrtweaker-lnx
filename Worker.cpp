@@ -10,6 +10,7 @@
 #include <locale>
 
 #include <unistd.h>
+#include <stdio.h>
 
 #include "Worker.h"
 #include "StringUtils.h"
@@ -46,6 +47,7 @@ bool Worker::ParseParams(int argc, const char* argv[]) {
     NBPStateInfo nbpsi;
     nbpsi.Multi = nbpsi.VID = -1.0;
 
+    fprintf(stdout,"Parsing command line as:\n");
     for (int i = 0; i < info.NumPStates; i++) {
         _pStates.push_back(psi);
         _pStates.back().Index = i;
@@ -66,6 +68,7 @@ bool Worker::ParseParams(int argc, const char* argv[]) {
                 const int index = atoi(param.c_str() + 1);
                 if (index >= 0 && index < info.NumPStates) {
                     _pState = index;
+            fprintf(stdout,"pstate:%d\n",_pState);
                     continue;
                 }
             }
@@ -81,6 +84,7 @@ bool Worker::ParseParams(int argc, const char* argv[]) {
                     if (!vid.empty())
                         _pStates[index].VID = info.EncodeVID(atof(vid.c_str()));
 
+            fprintf(stdout,"pstate:%d multi:%02.2f vid:%d\n", index, _pStates[index].Multi, _pStates[index].VID);
                     continue;
                 }
             }
@@ -147,6 +151,7 @@ static bool ContainsChanges(const NBPStateInfo& info) {
 void Worker::ApplyChanges() {
     const Info& info = *_info;
 
+    //north bridge stuff:
     if (info.Family == 0x15) {
         for (size_t i = 0; i < _nbPStates.size(); i++) {
             const NBPStateInfo& nbpsi = _nbPStates[i];
@@ -166,11 +171,13 @@ void Worker::ApplyChanges() {
         }
     }
 
+    //turbo stuff:
     if (_turbo >= 0 && info.IsBoostSupported)
         info.SetBoostSource(_turbo == 1);
     if (_apm >= 0 && info.Family == 0x15)
         info.SetAPM(_apm == 1);
 
+    //pstates stuff:
     for (size_t i = 0; i < _pStates.size(); i++) {
         const PStateInfo& psi = _pStates[i];
         if (ContainsChanges(psi))
@@ -188,6 +195,7 @@ void Worker::ApplyChanges() {
     else {
         if (ContainsChanges(_pStates[currentPState])) {
             const int tempPState = (currentPState == info.NumPStates - 1 ? 0 : info.NumPStates - 1);
+          fprintf(stdout,"currentpstate:%d temppstate:%d\n", currentPState, tempPState);
             info.SetCurrentPState(tempPState);
             sleep(1);
             info.SetCurrentPState(currentPState);

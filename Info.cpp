@@ -11,6 +11,11 @@
 #include "Info.h"
 #include "WinRing0.h"
 
+#include <assert.h>
+
+//top voltage, fixed value used for calculating VIDs and stuff, do not change!!!
+#define V155 1.55
+
 using std::min;
 using std::max;
 
@@ -38,7 +43,7 @@ bool Info::Initialize() {
     // check family
     regs = Cpuid(0x80000001);
     Family = GetBits(regs.eax, 8, 4) + GetBits(regs.eax, 20, 8);
-    if (!(Family == 0x10 || Family == 0x12 || Family == 0x14 || Family == 0x15))
+    if (!(Family == 0x10 || Family == 0x12/*aka 18 decimal cat /proc/cpuinfo */ || Family == 0x14 || Family == 0x15))
         return false;
 
     // read model
@@ -85,7 +90,7 @@ bool Info::Initialize() {
 
     MinVID = (minVID == 0 ? 0.0
               : DecodeVID(minVID));
-    MaxVID = (maxVID == 0 ? 1.55
+    MaxVID = (maxVID == 0 ? V155
               : DecodeVID(maxVID));
 
     // is CBP (core performance boost) supported?
@@ -392,17 +397,22 @@ void Info::EncodeMulti(double multi, int& fid, int& did) const {
 
 
 double Info::DecodeVID(int vid) const {
-    return 1.55 - vid * VIDStep;
+    return V155 - vid * VIDStep;
 }
 
 int Info::EncodeVID(double vid) const {
-    vid = max(0.0, min(1.55, vid));
+  assert(VIDStep > 0);
+  assert(vid > 0.0);
+  assert(vid < V155);
+  //^ wanna catch the mistake rather than just round to the limits
+
+    vid = max(0.0, min(V155, vid));//FIXME: use a less than 1.55 max voltage there, depending on reported one which is 1.325V for my cpu eg. 1.45 shouldn't be allowed!; OK, maybe that 1.55 is something else... in which case ignore all this.
 
     // round to nearest step
     int r = (int)(vid / VIDStep + 0.5);
 
     //1.55 / VIDStep = highest VID (0 V)
-    return (int)(1.55 / VIDStep) - r;
+    return (int)(V155 / VIDStep) - r;
 }
 
 

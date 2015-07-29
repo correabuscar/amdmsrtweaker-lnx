@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS=-Os -Wall -pedantic
+CXXFLAGS=-Os -Wall -pedantic -g3 -DDEBUG
 
 all: Info.o AmdMsrTweaker.o WinRing0.o Worker.o
 	${CXX} AmdMsrTweaker.o Info.o WinRing0.o Worker.o ${CXXFLAGS} -o amdmsrt

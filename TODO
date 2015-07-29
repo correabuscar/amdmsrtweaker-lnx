@@ -1,0 +1,8 @@
+- embed in kernel
+ - see /home/emacs/build/kernel/linuxgit/makepkg/linux-git/src/linux-git/tools/power/cpupower/utils/helpers/cpuid.c
+ - /proc may not be mounted for /proc/cpuinfo
+ - modules may not be available(on the storage: initramfs?) depending on at which point in kernel I wanna load them with init_module
+ - can have both /proc and modules  for fallback if one's not available
+ - must not keep modules loaded
+ - they must not be built into kernel because this allows other msr activities after boot UNLESS grcsecurity can have that option which denies all such access to msr and stuff.
+

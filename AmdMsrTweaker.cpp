@@ -11,6 +11,8 @@
 #include "Worker.h"
 #include "WinRing0.h"
 
+#include <string.h>
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -18,8 +20,24 @@ using std::endl;
 
 void PrintInfo(const Info& info);
 
+const int count=1+8;
+const char* params[count]={
+  "self"
+  ,"P0=22@1.0875"
+  ,"P1=20@1.0250"
+  ,"P2=18@0.9625"
+  ,"P3=17@0.9375"
+  ,"P4=16@0.9"
+  ,"P5=14@0.8625"
+  ,"P6=12@0.8125"
+  ,"P7=8@0.7125"
+};
+
 /// <summary>Entry point for the program.</summary>
 int main(int argc, const char* argv[]) {
+    cout << endl;
+    cout << "AmdMsrTweaker v1.1 modified for my own Lenovo Z575 ONLY!!! (voltages are fixed, params ignored!)" << endl;
+    cout << endl;
     try {
         Info info;
         if (!info.Initialize()) {
@@ -27,14 +45,27 @@ int main(int argc, const char* argv[]) {
             return 2;
         }
 
-        if (argc > 1) {
+
+    cout << ".:. General" << endl << "---" << endl;
+    cout << "  AMD family 0x" << std::hex << info.Family << std::dec << " (" << info.Family << " dec)" << std::hex << ", model 0x" << info.Model << std::dec << " CPU, " << info.NumCores << " cores" << endl;
+    cout << "  Default reference clock: " << info.multiScaleFactor * 100 << " MHz" << endl;
+    cout << "  Available multipliers: " << (info.MinMulti / info.multiScaleFactor) << " .. " << (info.MaxSoftwareMulti / info.multiScaleFactor) << endl;
+    cout << "  Available voltage IDs: " << info.MinVID << " .. " << info.MaxVID << " (" << info.VIDStep << " steps)" << endl;
+    cout << endl;
+
+        if ((argc > 1)and(0 == strncmp("I wanna brick my system!", argv[1],25))) {//we make sure, because we're about to apply preset(in source code) voltages!!
             Worker worker(info);
 
-            if (!worker.ParseParams(argc, argv)) {
+            if (!worker.ParseParams(count, params)) {
+//            if (!worker.ParseParams(argc, argv)) {
                 return 3;
             }
 
+            fprintf(stdout,"Before:\n");
+            PrintInfo(info);
             worker.ApplyChanges();
+            fprintf(stdout,"After:\n");
+            PrintInfo(info);
         } else {
             PrintInfo(info);
         }
@@ -48,16 +79,6 @@ int main(int argc, const char* argv[]) {
 
 
 void PrintInfo(const Info& info) {
-    cout << endl;
-    cout << "AmdMsrTweaker v1.1" << endl;
-    cout << endl;
-
-    cout << ".:. General" << endl << "---" << endl;
-    cout << "  AMD family 0x" << std::hex << info.Family << ", model 0x" << info.Model << std::dec << " CPU, " << info.NumCores << " cores" << endl;
-    cout << "  Default reference clock: " << info.multiScaleFactor * 100 << " MHz" << endl;
-    cout << "  Available multipliers: " << (info.MinMulti / info.multiScaleFactor) << " .. " << (info.MaxSoftwareMulti / info.multiScaleFactor) << endl;
-    cout << "  Available voltage IDs: " << info.MinVID << " .. " << info.MaxVID << " (" << info.VIDStep << " steps)" << endl;
-    cout << endl;
 
     cout << ".:. Turbo" << endl << "---" << endl;
     if (!info.IsBoostSupported)
@@ -86,7 +107,7 @@ void PrintInfo(const Info& info) {
     for (int i = 0; i < info.NumPStates; i++) {
         const PStateInfo pi = info.ReadPState(i);
 
-        cout << "  P" << i << ": " << (pi.Multi / info.multiScaleFactor) << "x at " << info.DecodeVID(pi.VID) << "V" << endl;
+        cout << "  P" << i << ": " << (pi.Multi / info.multiScaleFactor) << "x at " << info.DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;
 
         if (pi.NBPState >= 0) {
             cout << "      NorthBridge in NB_P" << pi.NBPState;
