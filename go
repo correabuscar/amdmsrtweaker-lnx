@@ -1,16 +1,19 @@
 #!/bin/bash
 
+sudo=''
 if [ `id -u` != 0 ] ; then
-    echo "you are not root! press a key, not shift/ctrl/alt"
-    read -n 1 -s
-    exit 1
+  echo "!! You're not root, using sudo..."
+#    echo "you are not root! press a key, not shift/ctrl/alt"
+#    read -n 1 -s
+#    exit 1
+  sudo='sudo -- '
 fi
 
 scriptdir="$(dirname "$0")"
 
 #on manjaro/arch
 #all 4 cores affected
-cpupower frequency-set -g conservative
+$sudo cpupower frequency-set -g conservative
 #cpupower frequency-set -g ondemand
 #this was on linux mint
 #cpufreq-set -g conservative -c 0
@@ -18,8 +21,8 @@ cpupower frequency-set -g conservative
 #cpufreq-set -g conservative -c 2
 #cpufreq-set -g conservative -c 3
 
-modprobe msr
-modprobe cpuid
+$sudo modprobe msr
+$sudo modprobe cpuid
 #echo before was:
 #"${scriptdir}/amdmsrt"
 #echo setting anew:
@@ -32,12 +35,12 @@ modprobe cpuid
 #on my Lenovo Z575
 #don't use this anywhere else, or it will corrupt your system, obviously!
 #"${scriptdir}/amdmsrt" P0=22@1.0875 P1=20@1.0250 P2=18@0.9625 P3=17@0.9375 P4=16@0.9 P5=14@0.8625 P6=12@0.8125 P7=8@0.7125
-"${scriptdir}/amdmsrt" 'I wanna brick my system!'
+$sudo "${scriptdir}/amdmsrt" 'I wanna brick my system!'
 #"${scriptdir}/amdmsrt"
 #echo now is:
 #"${scriptdir}/amdmsrt"
-rmmod msr
-rmmod cpuid
+$sudo rmmod msr
+$sudo rmmod cpuid
 
 #put network card in auto power mode (cable must be plugged in after boot, else it will fail to wake up, tested this to be true with 3.16-rc7 )
 #FIXME: this changes to 02:00.0 when DIScrete gfx card is not disabled in BIOS
@@ -60,5 +63,5 @@ rmmod cpuid
 #sudo wondershaper -c -a enp1s0
 
 #sudo /home/emacs/bin/utc
-cat /proc/cpuinfo |grep cores
+$sudo cat /proc/cpuinfo |grep cores
 

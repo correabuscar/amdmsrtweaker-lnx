@@ -1,12 +1,17 @@
 #!/bin/bash
 
+sudo=''
+
 if [ `id -u` != 0 ] ; then
-    echo "you are not root! press a key, not shift/ctrl/alt"
-    read -n 1 -s
-    exit 1
+  echo "!! You're not root, using sudo..."
+#    echo "you are not root! press a key, not shift/ctrl/alt"
+#    read -n 1 -s
+#    exit 1
+  sudo='sudo -- '
 fi
 
 
 #on manjaro/arch
 #all 4 cores affected
-cpupower frequency-set -g ondemand
+$sudo cpupower frequency-set -g ondemand
+
