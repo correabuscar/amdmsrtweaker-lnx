@@ -36,7 +36,7 @@ public:
     double MaxSoftwareMulti; // for software (i.e., non-boost) P-states
     double MinVID, MaxVID;
     double VIDStep;
-    double multiScaleFactor;
+//    double multiScaleFactor;
 
     bool IsBoostSupported;
     bool IsBoostEnabled;
@@ -54,7 +54,7 @@ public:
         , MaxSoftwareMulti(0.0)
         , MinVID(0.0), MaxVID(0.0)
         , VIDStep(0.0125) //default step for pre SVI2 platforms
-        , multiScaleFactor(1.0) //default for 100MHz REFCLK
+//        , multiScaleFactor(1.0) //default for 100MHz REFCLK
         , IsBoostSupported(false)
         , IsBoostEnabled(false)
         , IsBoostLocked(false)
@@ -71,7 +71,7 @@ public:
 
     void SetCPBDis(bool enabled) const;
     void SetBoostSource(bool enabled) const;
-    void SetAPM(bool enabled) const;
+//    void SetAPM(bool enabled) const;
 
     int GetCurrentPState() const;
     void SetCurrentPState(int index) const;

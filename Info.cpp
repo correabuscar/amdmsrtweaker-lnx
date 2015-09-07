@@ -17,12 +17,13 @@
 
 //top voltage, fixed value used for calculating VIDs and stuff, do not change!!!
 #define V155 1.55
+#define V1325 1.325 //my original turbo state!
 
 using std::min;
 using std::max;
 
 // divisors for families 0x10 and 0x15
-static const double DIVISORS_10_15[] = { 1.0, 2.0, 4.0, 8.0, 16.0, 0.0 };
+//static const double DIVISORS_10_15[] = { 1.0, 2.0, 4.0, 8.0, 16.0, 0.0 };
 // special divisors for family 0x12
 static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 0.0 };
 
@@ -108,7 +109,7 @@ bool Info::Initialize() {
 //    MaxVID = (maxVID == 0 ? V155
 //              : DecodeVID(maxVID));
     MinVID=DecodeVID(88);
-    MaxVID=DecodeVID(18);//not an error, it's less!
+    MaxVID=DecodeVID(18);//not an error, it's less! that is: 124-18=106
 //    fprintf(stderr, " MinVID: %f %f\n", MinVID, MaxVID);
 
     // is CBP (core performance boost) supported?
@@ -165,25 +166,28 @@ PStateInfo Info::ReadPState(int index) const {
     result.Index = index;
 
     int fid, did;
-    if (Family == 0x14) {
+/*    if (Family == 0x14) {
         fid = GetBits(msr, 4, 5); // DID MSD
         did = GetBits(msr, 0, 4); // DID LSD
-    } else if (Family == 0x12) {
+    } else */
+    if (Family == 0x12) {
         fid = GetBits(msr, 4, 5);
         did = GetBits(msr, 0, 4);
-    } else {
+    } else abort();
+    /* else {
         fid = GetBits(msr, 0, 6);
         did = GetBits(msr, 6, 3);
-    }
+    }*/
 
     result.Multi = DecodeMulti(fid, did);
 
-    //on SVI2 platforms, VID is 8 bits
+/*    //on SVI2 platforms, VID is 8 bits
     if (Family == 0x15 && ((Model > 0xF && Model < 0x20) || (Model > 0x2F && Model < 0x40)))
         result.VID = GetBits(msr, 9, 8);
-    else
+    else*/
         result.VID = GetBits(msr, 9, 7);
 
+    fprintf(stdout,"index:%d fid:%d did:%d multi:%f vid:%d\n", result.Index, fid, did, result.Multi, result.VID);
 /*    if (!(Family == 0x12 || Family == 0x14)) {
         const int nbDid = GetBits(msr, 22, 1);
         result.NBPState = nbDid;
@@ -205,24 +209,28 @@ void Info::WritePState(const PStateInfo& info) const {
     if (info.Multi >= 0) {
         int fid, did;
         EncodeMulti(info.Multi, fid, did);
+        fprintf(stdout,"fid:%d did:%d", fid, did);
 
-        if (Family == 0x14) {
+/*        if (Family == 0x14) {
             SetBits(msr, fid, 4, 5); // DID MSD
             SetBits(msr, did, 0, 4); // DID LSD
-        } else if (Family == 0x12) {
+        } else */
+        if (Family == 0x12) {
             SetBits(msr, fid, 4, 5);
             SetBits(msr, did, 0, 4);
-        } else {
+        } else abort();
+        /* else {
             SetBits(msr, fid, 0, 6);
             SetBits(msr, did, 6, 3);
-        }
+        }*/
     }
 
     if (info.VID >= 0) {
-        //on SVI2 platforms, VID is 8 bits
+        fprintf(stdout," vid:%d", info.VID);
+/*        //on SVI2 platforms, VID is 8 bits
         if (Family == 0x15 && ((Model > 0xF && Model < 0x20) || (Model > 0x2F && Model < 0x40)))
             SetBits(msr, info.VID, 9, 8);
-        else
+        else*/
             SetBits(msr, info.VID, 9, 7);
     }
 
@@ -239,6 +247,7 @@ void Info::WritePState(const PStateInfo& info) const {
         }
     }*/
 
+    fprintf(stdout, "\n");
     Wrmsr(regIndex, msr);
 }
 
@@ -320,14 +329,14 @@ void Info::SetBoostSource(bool enabled) const {
     WritePciConfig(AMD_CPU_DEVICE, 4, 0x15c, eax);
 }
 
-void Info::SetAPM(bool enabled) const {
+/*void Info::SetAPM(bool enabled) const {
     if (Family != 0x15)
         throw ExceptionWithMessage("APM not supported");
 
     uint32_t eax = ReadPciConfig(AMD_CPU_DEVICE, 4, 0x15c);
     SetBits(eax, (enabled ? 1 : 0), 7, 1);
     WritePciConfig(AMD_CPU_DEVICE, 4, 0x15c, eax);
-}
+}*/
 
 
 int Info::GetCurrentPState() const {
@@ -353,7 +362,7 @@ void Info::SetCurrentPState(int index) const {
 
 
 double Info::DecodeMulti(int fid, int did) const {
-    if (Family == 0x14) {
+/*    if (Family == 0x14) {
         // fid => DID MSD (integral part of divisor - 1)
         // did => DID LSD (fractional part of divisor, in quarters)
 
@@ -364,16 +373,16 @@ double Info::DecodeMulti(int fid, int did) const {
         divisor += did * 0.25;
 
         return MaxMulti / divisor;
-    }
+    }*/
 
-    const double* divisors = (Family == 0x12 ? DIVISORS_12
-                              : DIVISORS_10_15);
+//    const double* divisors = DIVISORS_12; //(Family == 0x12 ? DIVISORS_12
+//                              : DIVISORS_10_15);
 
-    return (fid + 16) / divisors[did];
+    return (fid + 16) / DIVISORS_12[did];
 }
 
 void Info::EncodeMulti(double multi, int& fid, int& did) const {
-    if (Family == 0x14) {
+/*    if (Family == 0x14) {
         if (MaxMulti == 0)
             throw ExceptionWithMessage("cannot encode multiplier (family 0x14) - unknown max multiplier");
 
@@ -399,22 +408,23 @@ void Info::EncodeMulti(double multi, int& fid, int& did) const {
         }
 
         return;
-    }
+    }*/
 
     const int minNumerator = 16; // numerator: 0x10 = 16 as fixed offset
     int maxNumerator;
-    const double* divisors;
+//    const double* divisors;
 
-    if (Family == 0x12) {
+//    if (Family == 0x12) {
         maxNumerator = 31 + minNumerator; // 5 bits => max 2^5-1 = 31
-        divisors = DIVISORS_12;
-    } else {
+//        divisors = DIVISORS_12;
+//    } else abort();
+/*{
         maxNumerator = 47 + minNumerator; // 6 bits, but max 0x2f = 47
-        divisors = DIVISORS_10_15;
-    }
+//        divisors = DIVISORS_10_15;
+//    }*/
 
     int numerator, divisorIndex;
-    FindFraction(multi, divisors, numerator, divisorIndex, minNumerator, maxNumerator);
+    FindFraction(multi, DIVISORS_12, numerator, divisorIndex, minNumerator, maxNumerator);
 
     fid = numerator - minNumerator;
     did = divisorIndex;
@@ -431,13 +441,14 @@ int Info::EncodeVID(double vid) const {
   assert(vid < V155);
   //^ wanna catch the mistake rather than just round to the limits
 
-    vid = max(0.0, min(V155, vid));//FIXME: use a less than 1.55 max voltage there, depending on reported one which is 1.325V for my cpu eg. 1.45 shouldn't be allowed!; OK, maybe that 1.55 is something else... in which case ignore all this.
+  //XXX: here, just making sure input vid doesn't exceed 1.325V ! (my CPU)
+    vid = max(0.0, min(V1325, vid));//done: use a less than 1.55 max voltage there, depending on reported one which is 1.325V for my cpu eg. 1.45 shouldn't be allowed!; OK, maybe that 1.55 is something else... in which case ignore all this.
 
     // round to nearest step
     int r = (int)(vid / VIDStep + 0.5);
 
     //1.55 / VIDStep = highest VID (0 V)
-    return (int)(V155 / VIDStep) - r;
+    return (int)(V155 / VIDStep) - r;//VIDStep is 0.0125; so, 124 - 87(for 1.0875 aka 22x multi) = 37
 }
 
 

@@ -63,7 +63,7 @@ uint64_t Rdmsr(uint32_t index) {
     fprintf(stdout,"!! Rdmsr: %x ... ", index);
     int msr = open("/dev/cpu/0/msr", O_RDONLY);
     if (msr == -1) {
-        perror("Failed to open msr device for reading");
+        perror("Failed to open msr device for reading. You need: # modprobe msr");
         exit(-1);
     }
     pread(msr, &result, sizeof(result), index);

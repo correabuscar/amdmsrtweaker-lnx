@@ -20,7 +20,7 @@ using std::endl;
 
 void PrintInfo(const Info& info);
 
-const int count=1+8;
+/*const int count=1+8;
 const char* params[count]={
   "self"
   ,"P0=22@1.0875"
@@ -31,7 +31,7 @@ const char* params[count]={
   ,"P5=14@0.8625"
   ,"P6=12@0.8125"
   ,"P7=8@0.7125"
-};
+};*/
 
 /// <summary>Entry point for the program.</summary>
 int main(int argc, const char* argv[]) {
@@ -48,16 +48,15 @@ int main(int argc, const char* argv[]) {
 
     cout << ".:. General" << endl << "---" << endl;
     cout << "  AMD family 0x" << std::hex << info.Family << std::dec << " (" << info.Family << " dec)" << std::hex << ", model 0x" << info.Model << std::dec << " CPU, " << info.NumCores << " cores" << endl;
-    cout << "  Default reference clock: " << info.multiScaleFactor * 100 << " MHz" << endl;
-    cout << "  Available multipliers: " << (info.MinMulti / info.multiScaleFactor) << " .. " << (info.MaxSoftwareMulti / info.multiScaleFactor) << endl;
+    cout << "  Default reference clock: " << /*info.multiScaleFactor * */ 100 << " MHz" << endl;
+    cout << "  Available multipliers: " << (info.MinMulti /*/ info.multiScaleFactor*/) << " .. " << (info.MaxSoftwareMulti /* / info.multiScaleFactor*/) << endl;
     cout << "  Available voltage IDs: " << info.MinVID << " .. " << info.MaxVID << " (" << info.VIDStep << " steps)" << endl;
     cout << endl;
 
-        if ((argc > 1)and(0 == strncmp("I wanna brick my system!", argv[1],25))) {//we make sure, because we're about to apply preset(in source code) voltages!!
+        if ((argc > 1)and(0 == strncmp("I wanna brick my system!", argv[1],25))) {//we make sure, because we're about to apply preset voltages!(hardcoded in source code)
             Worker worker(info);
 
-            if (!worker.ParseParams(count, params)) {
-//            if (!worker.ParseParams(argc, argv)) 
+            if (!worker.ParseParams()) {
                 return 3;
             }
 
@@ -88,7 +87,7 @@ void PrintInfo(const Info& info) {
         cout << "  " << (info.IsBoostLocked ? "locked" : "unlocked") << endl;
 
         if (info.MaxMulti != info.MaxSoftwareMulti)
-            cout << "  Max multiplier: " << (info.MaxMulti / info.multiScaleFactor) << endl;
+            cout << "  Max multiplier: " << (info.MaxMulti /* / info.multiScaleFactor */) << endl;
     }
     cout << endl;
 
@@ -107,7 +106,7 @@ void PrintInfo(const Info& info) {
     for (int i = 0; i < info.NumPStates; i++) {
         const PStateInfo pi = info.ReadPState(i);
 
-        cout << "  P" << i << ": " << (pi.Multi / info.multiScaleFactor) << "x at " << info.DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;
+        cout << "  P" << i << ": " << (pi.Multi /* / info.multiScaleFactor*/ ) << "x at " << info.DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;
 
 /*        if (pi.NBPState >= 0) {
             cout << "      NorthBridge in NB_P" << pi.NBPState;
