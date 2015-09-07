@@ -1,0 +1,20 @@
+#!/bin/bash
+
+destdir="`dirname $CSCOPE_DB`"
+if test -z "$destdir"; then
+  destdir=/tmp/cscope/
+  echo "no \$CSCOPE_DB env var, fallback to: '$destdir'. Don't forget to \":cscope add $destdir\"  within vim"
+fi
+
+mkdir -p "$(realpath "$destdir")"
+
+if test ! -d "$destdir"; then
+  echo "!! failed to make destdir: '$destdir'"
+  exit 1
+fi
+
+oldpwd="`pwd`"
+
+cd "$destdir"
+find "$oldpwd" -iname '*.h' -or -iname '*.c' -or -iname '*.cpp' | cscope -b -q -i- -R -k
+
