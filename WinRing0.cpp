@@ -16,6 +16,8 @@
 
 #include <inttypes.h>
 
+//#include <include/linux/smp.h>
+
 using std::exception;
 using std::string;
 
@@ -112,6 +114,7 @@ CpuidRegs Cpuid(uint32_t index) {
      * _IONBF No buffering: No buffer is used. Each I/O operation is written as soon as possible. In this case, the buffer and size parameters are ignored.
      */
     setvbuf(cpuid, NULL, _IOFBF, 16);//see kernel's: ./arch/x86/kernel/cpuid.c
+    //http://www.cplusplus.com/reference/cstdio/setvbuf/
     fseek(cpuid, index, SEEK_SET);
 //    result.eax=0xFFFFFFFF;
 //    fprintf(stderr, "!! sizeof = %lu eax=%x\n", sizeof(result.eax), result.eax); //4, I knew it! so, how come this works:
@@ -124,6 +127,13 @@ CpuidRegs Cpuid(uint32_t index) {
     fread(&(result.edx), sizeof(result.edx), 1, cpuid);
     fclose(cpuid);
     fprintf(stdout," done.\n");
+
+//    int cpu=0;
+//    struct cpuid_regs {
+//        u32 eax, ebx, ecx, edx;
+//    };    
+
+//    smp_call_function_single(cpu, cpuid_smp_cpuid, &cmd, 1);  can't :/
 
     return result;
 }
