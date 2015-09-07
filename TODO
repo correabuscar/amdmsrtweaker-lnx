@@ -6,3 +6,9 @@
  - must not keep modules loaded
  - they must not be built into kernel because this allows other msr activities after boot UNLESS grcsecurity can have that option which denies all such access to msr and stuff.
 
+- reduce code to handle only my specific Z575 laptop CPU (family 0x12 == 18)
+  * tested to work
+  - remove all commented code
+
+- then embed in kernel
+
