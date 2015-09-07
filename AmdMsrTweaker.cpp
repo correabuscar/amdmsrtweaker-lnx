@@ -57,7 +57,7 @@ int main(int argc, const char* argv[]) {
             Worker worker(info);
 
             if (!worker.ParseParams(count, params)) {
-//            if (!worker.ParseParams(argc, argv)) {
+//            if (!worker.ParseParams(argc, argv)) 
                 return 3;
             }
 
