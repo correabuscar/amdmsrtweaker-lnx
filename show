@@ -12,8 +12,8 @@ fi
 
 
 $sudo modprobe msr
-$sudo modprobe cpuid
+#$sudo modprobe cpuid
 $sudo ./amdmsrt
 $sudo rmmod msr
-$sudo rmmod cpuid
+#$sudo rmmod cpuid
 

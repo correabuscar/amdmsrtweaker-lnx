@@ -13,6 +13,8 @@
 
 #include <assert.h>
 
+#include <stdio.h>
+
 //top voltage, fixed value used for calculating VIDs and stuff, do not change!!!
 #define V155 1.55
 
@@ -31,71 +33,89 @@ void FindFraction(double value, const double* divisors,
 
 
 bool Info::Initialize() {
-    CpuidRegs regs;
+//    CpuidRegs regs;
     uint64_t msr;
     uint32_t eax;
 
     // verify vendor = AMD ("AuthenticAMD")
-    regs = Cpuid(0x80000000);
-    if (regs.ecx != 0x444d4163) // "DMAc"
-        return false;
+    //assumed AMD
+//    regs = Cpuid(0x80000000);
+//    if (regs.ecx != 0x444d4163) // "DMAc"
+//        return false;
 
     // check family
-    regs = Cpuid(0x80000001);
-    Family = GetBits(regs.eax, 8, 4) + GetBits(regs.eax, 20, 8);
-    if (!(Family == 0x10 || Family == 0x12/*aka 18 decimal cat /proc/cpuinfo */ || Family == 0x14 || Family == 0x15))
-        return false;
+//    regs = Cpuid(0x80000001);
+//    Family = GetBits(regs.eax, 8, 4) + GetBits(regs.eax, 20, 8);
+    Family = 0x12;//assume my CPU
+//    if (!(Family == 0x10 || Family == 0x12/*aka 18 decimal cat /proc/cpuinfo */ || Family == 0x14 || Family == 0x15))
+//        return false;
 
     // read model
-    Model = GetBits(regs.eax, 4, 4) + (GetBits(regs.eax, 16, 4) << 4);
+//    Model = GetBits(regs.eax, 4, 4) + (GetBits(regs.eax, 16, 4) << 4);
+    Model = 0x1;//my CPU
 
     //set VID step for SVI2 platforms (otherwise 0.0125 is assumed, see header)
     // Family 0x15 Models 10-1F is Trinity/Richland
     // Family 0x15 Models 30-3F is Kaveri
-    if (Family == 0x15 && ((Model > 0xF && Model < 0x20) || (Model > 0x2F && Model < 0x40)))
-        VIDStep = 0.00625;
+//    if (Family == 0x15 && ((Model > 0xF && Model < 0x20) || (Model > 0x2F && Model < 0x40)))
+//        VIDStep = 0.00625;
 
     // scale factor from external multi to internal one (default 1, set for 200MHz REFCLK platforms)
     // Family 0x10 includes all AM2+/AM3 K10 CPUs
     // Family 0x15 Models 0-F is Bulldozer/Piledriver
-    if (Family == 0x10 || (Family == 0x15 && Model < 0x10))
-        multiScaleFactor = 2.0;
+//    if (Family == 0x10 || (Family == 0x15 && Model < 0x10))
+//        multiScaleFactor = 2.0;
 
     // number of physical cores
-    regs = Cpuid(0x80000008);
-    NumCores = GetBits(regs.ecx, 0, 8) + 1;
+//    regs = Cpuid(0x80000008);
+//    NumCores = GetBits(regs.ecx, 0, 8) + 1;
+    NumCores=4;//my CPU
 
     // number of hardware P-states
-    eax = ReadPciConfig(AMD_CPU_DEVICE, 3, 0xdc);
-    NumPStates = GetBits(eax, 8, 3) + 1;
+//    eax = ReadPciConfig(AMD_CPU_DEVICE, 3, 0xdc);
+//    NumPStates = GetBits(eax, 8, 3) + 1;//8
+    NumPStates = 8;//my CPU
+//    fprintf(stderr, " pstates num = %d", NumPStates);
 
-    if (Family == 0x15) {
+/*    if (Family == 0x15) {
         eax = ReadPciConfig(AMD_CPU_DEVICE, 5, 0x170);
         NumNBPStates = (eax & 0x3) + 1;
-    }
+    }*/
 
     // get limits
-    msr = Rdmsr(0xc0010071);
+//    msr = Rdmsr(0xc0010071);
 
-    const int maxMulti = GetBits(msr, 49, 6);
-    const int minVID = GetBits(msr, 42, 7);
-    const int maxVID = GetBits(msr, 35, 7);
+//    const int maxMulti = GetBits(msr, 49, 6);//24 for my CPU
+//    const int minVID = GetBits(msr, 42, 7);//88
+//    const int maxVID = GetBits(msr, 35, 7);//18  yes that's right, it's less!
+//    const int minVID=88;
+//    const int maxVID=18;
 
-    MinMulti = (Family == 0x14 ? (maxMulti == 0 ? 0 : (maxMulti + 16) / 26.5)
-                : 1.0);
-    MaxMulti = (maxMulti == 0 ? (Family == 0x14 ? 0
-                                 : (Family == 0x12 ? 31 + 16 : 47 + 16))
-                    : (Family == 0x12 || Family == 0x14 ? maxMulti + 16 : maxMulti));
+//    MinMulti = (Family == 0x14 ? (maxMulti == 0 ? 0 : (maxMulti + 16) / 26.5)
+//                : 1.0);
+    MinMulti = 1.0;
+//    fprintf(stderr, "MaxMulti pre=%d", maxMulti);
+//    MaxMulti = (maxMulti == 0 ? (Family == 0x14 ? 0
+//                                 : (Family == 0x12 ? 31 + 16 : 47 + 16))
+//                    : (Family == 0x12 || Family == 0x14 ? maxMulti + 16 : maxMulti));
+//    fprintf(stderr, "MaxMulti post=%f", MaxMulti);
+//    fprintf(stderr, " minVID: %d %d\n", minVID, maxVID);
+    MaxMulti=40.0;//24+16
     MaxSoftwareMulti = MaxMulti;
 
-    MinVID = (minVID == 0 ? 0.0
-              : DecodeVID(minVID));
-    MaxVID = (maxVID == 0 ? V155
-              : DecodeVID(maxVID));
+//    MinVID = (minVID == 0 ? 0.0
+//              : DecodeVID(minVID));
+//    MaxVID = (maxVID == 0 ? V155
+//              : DecodeVID(maxVID));
+    MinVID=DecodeVID(88);
+    MaxVID=DecodeVID(18);//not an error, it's less!
+//    fprintf(stderr, " MinVID: %f %f\n", MinVID, MaxVID);
 
     // is CBP (core performance boost) supported?
-    regs = Cpuid(0x80000007);
-    IsBoostSupported = (GetBits(regs.edx, 9, 1) == 1);
+//    regs = Cpuid(0x80000007);
+//    IsBoostSupported = (GetBits(regs.edx, 9, 1) == 1);//1 aka true
+    IsBoostSupported=1;
+//    fprintf(stderr, " isBoost: %d\n", IsBoostSupported);
 
     if (IsBoostSupported) {
         // is CPB disabled for the current core?
@@ -104,18 +124,23 @@ bool Info::Initialize() {
 
         // boost lock, number of boost P-states and boost source
         eax = ReadPciConfig(AMD_CPU_DEVICE, 4, 0x15c);
-        IsBoostLocked = (Family == 0x12 ? true
-                         : GetBits(eax, 31, 1) == 1);
-        NumBoostStates = (Family == 0x10 ? GetBits(eax, 2, 1)
-                          : GetBits(eax, 2, 3));
+//        IsBoostLocked = (Family == 0x12 ? true
+//                         : GetBits(eax, 31, 1) == 1);
+        IsBoostLocked = true;//my CPU
+//        NumBoostStates = (Family == 0x10 ? GetBits(eax, 2, 1)
+//                          : GetBits(eax, 2, 3));
+        NumBoostStates=1;//my CPU
+//        fprintf(stderr, "num boost states: %d\n", NumBoostStates);
         const int boostSrc = GetBits(eax, 0, 2);
-        const bool isBoostSrcEnabled = (Family == 0x10 ? (boostSrc == 3)
-                                        : (boostSrc == 1));
+//        const bool isBoostSrcEnabled = (Family == 0x10 ? (boostSrc == 3)
+//                                        : (boostSrc == 1));
+        const bool isBoostSrcEnabled = (boostSrc == 1);
 
         IsBoostEnabled = (isBoostSrcEnabled && !cpbDis);
+//        fprintf(stderr, "boostsrc: %d %d cpbDis=%d boost:%d\n", boostSrc, isBoostSrcEnabled, cpbDis, IsBoostEnabled);//1 1 0 1
 
         // max multi for software P-states (families 0x10 and 0x15)
-        if (Family == 0x10) {
+/*        if (Family == 0x10) {
             eax = ReadPciConfig(AMD_CPU_DEVICE, 3, 0x1f0);
             const int maxSoftwareMulti = GetBits(eax, 20, 6);
             MaxSoftwareMulti = (maxSoftwareMulti == 0 ? 63
@@ -125,7 +150,7 @@ bool Info::Initialize() {
             const int maxSoftwareMulti = GetBits(eax, 0, 6);
             MaxSoftwareMulti = (maxSoftwareMulti == 0 ? 63
                                 : maxSoftwareMulti);
-        }
+        }*/
     }
 
     return true;
@@ -159,7 +184,7 @@ PStateInfo Info::ReadPState(int index) const {
     else
         result.VID = GetBits(msr, 9, 7);
 
-    if (!(Family == 0x12 || Family == 0x14)) {
+/*    if (!(Family == 0x12 || Family == 0x14)) {
         const int nbDid = GetBits(msr, 22, 1);
         result.NBPState = nbDid;
     } else
@@ -169,7 +194,7 @@ PStateInfo Info::ReadPState(int index) const {
         result.NBVID = GetBits(msr, 25, 7);
     } else
         result.NBVID = -1;
-
+*/
     return result;
 }
 
@@ -201,7 +226,7 @@ void Info::WritePState(const PStateInfo& info) const {
             SetBits(msr, info.VID, 9, 7);
     }
 
-    if (info.NBPState >= 0) {
+/*    if (info.NBPState >= 0) {
         if (!(Family == 0x12 || Family == 0x14)) {
             const int nbDid = max(0, min(1, info.NBPState));
             SetBits(msr, nbDid, 22, 1);
@@ -212,13 +237,13 @@ void Info::WritePState(const PStateInfo& info) const {
         if (Family == 0x10) {
             SetBits(msr, info.NBVID, 25, 7);
         }
-    }
+    }*/
 
     Wrmsr(regIndex, msr);
 }
 
 
-
+/*
 NBPStateInfo Info::ReadNBPState(int index) const {
     if (Family != 0x15)
         throw ExceptionWithMessage("NB P-states not supported");
@@ -272,7 +297,7 @@ void Info::WriteNBPState(const NBPStateInfo& info) const {
 
     WritePciConfig(AMD_CPU_DEVICE, 5, regAddress, eax);
 }
-
+*/
 
 void Info::SetCPBDis(bool enabled) const {
     if (!IsBoostSupported)

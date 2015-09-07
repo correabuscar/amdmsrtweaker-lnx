@@ -73,15 +73,15 @@ uint64_t Rdmsr(uint32_t index) {
     return result;
 }
 
-int get_num_cpu() {
+/*int get_num_cpu() {
     CpuidRegs regs = Cpuid(0x80000008);
     return 1 + (regs.ecx&0xff);
-}
+}*/
 
 void Wrmsr(uint32_t index, const uint64_t& value) {
     char path[255]= "\0";
 
-    for (int i = 0; i < get_num_cpu(); i++) {
+    for (int i = 0; i < 4 /*get_num_cpu()*/; i++) { //assume 4 cores
         sprintf(path, "/dev/cpu/%d/msr", i);
         //fprintf(stdout,"!! Wrmsr: %s idx:%"PRIu32" val:%"PRIu64"\n", path, index, value);
         fprintf(stdout,"!! Wrmsr: %s idx:%x val:%"PRIu64" ... ", path, index, value);
@@ -99,6 +99,7 @@ void Wrmsr(uint32_t index, const uint64_t& value) {
 }
 
 
+/*
 CpuidRegs Cpuid(uint32_t index) {
     CpuidRegs result;
 
@@ -108,11 +109,9 @@ CpuidRegs Cpuid(uint32_t index) {
         perror("Failed to open cpuid device for reading");
         exit(-1);
     }
-    /*
-     * _IOFBF Full buffering: On output, data is written once the buffer is full (or flushed). On Input, the buffer is filled when an input operation is requested and the buffer is empty.
-     * _IOLBF Line buffering: On output, data is written when a newline character is inserted into the stream or when the buffer is full (or flushed), whatever happens first. On Input, the buffer is filled up to the next newline character when an input operation is requested and the buffer is empty.
-     * _IONBF No buffering: No buffer is used. Each I/O operation is written as soon as possible. In this case, the buffer and size parameters are ignored.
-     */
+    // _IOFBF Full buffering: On output, data is written once the buffer is full (or flushed). On Input, the buffer is filled when an input operation is requested and the buffer is empty.
+    // _IOLBF Line buffering: On output, data is written when a newline character is inserted into the stream or when the buffer is full (or flushed), whatever happens first. On Input, the buffer is filled up to the next newline character when an input operation is requested and the buffer is empty.
+    // _IONBF No buffering: No buffer is used. Each I/O operation is written as soon as possible. In this case, the buffer and size parameters are ignored.
     setvbuf(cpuid, NULL, _IOFBF, 16);//see kernel's: ./arch/x86/kernel/cpuid.c
     //http://www.cplusplus.com/reference/cstdio/setvbuf/
     fseek(cpuid, index, SEEK_SET);
@@ -137,4 +136,5 @@ CpuidRegs Cpuid(uint32_t index) {
 
     return result;
 }
+*/
 

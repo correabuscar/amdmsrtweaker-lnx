@@ -109,20 +109,20 @@ void PrintInfo(const Info& info) {
 
         cout << "  P" << i << ": " << (pi.Multi / info.multiScaleFactor) << "x at " << info.DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;
 
-        if (pi.NBPState >= 0) {
+/*        if (pi.NBPState >= 0) {
             cout << "      NorthBridge in NB_P" << pi.NBPState;
             if (pi.NBVID >= 0)
                 cout << " at " << info.DecodeVID(pi.NBVID) << "V";
             cout << endl;
-        }
+        }*/
     }
 
-    if (info.Family == 0x15) {
+/*    if (info.Family == 0x15) {
         cout << "  ---" << endl;
 
         for (int i = 0; i < info.NumNBPStates; i++) {
             const NBPStateInfo pi = info.ReadNBPState(i);
             cout << "  NB_P" << i << ": " << pi.Multi << "x at " << info.DecodeVID(pi.VID) << "V" << endl;
         }
-    }
+    }*/
 }

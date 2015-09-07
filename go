@@ -22,7 +22,7 @@ $sudo cpupower frequency-set -g conservative
 #cpufreq-set -g conservative -c 3
 
 $sudo modprobe msr
-$sudo modprobe cpuid
+#$sudo modprobe cpuid
 #echo before was:
 #"${scriptdir}/amdmsrt"
 #echo setting anew:
@@ -40,7 +40,7 @@ $sudo "${scriptdir}/amdmsrt" 'I wanna brick my system!'
 #echo now is:
 #"${scriptdir}/amdmsrt"
 $sudo rmmod msr
-$sudo rmmod cpuid
+#$sudo rmmod cpuid
 
 #put network card in auto power mode (cable must be plugged in after boot, else it will fail to wake up, tested this to be true with 3.16-rc7 )
 #FIXME: this changes to 02:00.0 when DIScrete gfx card is not disabled in BIOS

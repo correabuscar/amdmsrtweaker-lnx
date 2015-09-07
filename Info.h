@@ -12,15 +12,15 @@ struct PStateInfo {
     int Index;    // hardware index
     double Multi; // internal one for 100 MHz reference
     int VID;
-    int NBPState;
-    int NBVID; // family 0x10 only
+//    int NBPState;
+//    int NBVID; // family 0x10 only
 };
 
-struct NBPStateInfo {
-    int Index;
-    double Multi; // for 200 MHz reference
-    int VID;
-};
+//struct NBPStateInfo {
+//    int Index;
+//    double Multi; // for 200 MHz reference
+//    int VID;
+//};
 
 
 class Info {
@@ -30,7 +30,7 @@ public:
     int Model;
     int NumCores;
     int NumPStates;
-    int NumNBPStates;
+//    int NumNBPStates;
 
     double MinMulti, MaxMulti; // internal ones for 100 MHz reference
     double MaxSoftwareMulti; // for software (i.e., non-boost) P-states
@@ -49,7 +49,7 @@ public:
         , Model(0)
         , NumCores(0)
         , NumPStates(0)
-        , NumNBPStates(2) //except family 0x15, we have at least 2 NB P-States
+//        , NumNBPStates(2) //except family 0x15, we have at least 2 NB P-States
         , MinMulti(0.0), MaxMulti(0.0)
         , MaxSoftwareMulti(0.0)
         , MinVID(0.0), MaxVID(0.0)
@@ -66,8 +66,8 @@ public:
     PStateInfo ReadPState(int index) const;
     void WritePState(const PStateInfo& info) const;
 
-    NBPStateInfo ReadNBPState(int index) const;
-    void WriteNBPState(const NBPStateInfo& info) const;
+//    NBPStateInfo ReadNBPState(int index) const;
+//    void WriteNBPState(const NBPStateInfo& info) const;
 
     void SetCPBDis(bool enabled) const;
     void SetBoostSource(bool enabled) const;

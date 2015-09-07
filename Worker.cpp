@@ -41,21 +41,21 @@ bool Worker::ParseParams(int argc, const char* argv[]) {
     const Info& info = *_info;
 
     PStateInfo psi;
-    psi.Multi = psi.VID = psi.NBVID = -1;
-    psi.NBPState = -1;
+    psi.Multi = psi.VID = -1; //psi.NBVID = -1;
+//    psi.NBPState = -1;
 
-    NBPStateInfo nbpsi;
-    nbpsi.Multi = nbpsi.VID = -1.0;
+//    NBPStateInfo nbpsi;
+//    nbpsi.Multi = nbpsi.VID = -1.0;
 
     fprintf(stdout,"Parsing command line as:\n");
     for (int i = 0; i < info.NumPStates; i++) {
         _pStates.push_back(psi);
         _pStates.back().Index = i;
     }
-    for (int i = 0; i < info.NumNBPStates; i++) {
-        _nbPStates.push_back(nbpsi);
-        _nbPStates.back().Index = i;
-    }
+//    for (int i = 0; i < info.NumNBPStates; i++) {
+//        _nbPStates.push_back(nbpsi);
+//        _nbPStates.back().Index = i;
+//    }
 
     for (int i = 1; i < argc; i++) {
         const string param(argv[i]);
@@ -89,7 +89,7 @@ bool Worker::ParseParams(int argc, const char* argv[]) {
                 }
             }
 
-            if (key.length() >= 5 && strncasecmp(key.c_str(), "NB_P", 4) == 0) {
+/*            if (key.length() >= 5 && strncasecmp(key.c_str(), "NB_P", 4) == 0) {
                 const int index = atoi(key.c_str() + 4);
                 if (index >= 0 && index < info.NumNBPStates) {
                     string multi, vid;
@@ -114,7 +114,7 @@ bool Worker::ParseParams(int argc, const char* argv[]) {
                     _pStates[j].NBPState = 1;
 
                 continue;
-            }
+            }*/
 
             if (strcasecmp(key.c_str(), "Turbo") == 0) {
                 const int flag = atoi(value.c_str());
@@ -142,17 +142,17 @@ bool Worker::ParseParams(int argc, const char* argv[]) {
 
 
 static bool ContainsChanges(const PStateInfo& info) {
-    return (info.Multi >= 0 || info.VID >= 0 || info.NBVID >= 0 || info.NBPState >= 0);
+    return (info.Multi >= 0 || info.VID >= 0 );//|| info.NBVID >= 0 || info.NBPState >= 0);
 }
-static bool ContainsChanges(const NBPStateInfo& info) {
-    return (info.Multi >= 0 || info.VID >= 0);
-}
+//static bool ContainsChanges(const NBPStateInfo& info) {
+//    return (info.Multi >= 0 || info.VID >= 0);
+//}
 
 void Worker::ApplyChanges() {
     const Info& info = *_info;
 
     //north bridge stuff:
-    if (info.Family == 0x15) {
+/*    if (info.Family == 0x15) {
         for (size_t i = 0; i < _nbPStates.size(); i++) {
             const NBPStateInfo& nbpsi = _nbPStates[i];
             if (ContainsChanges(nbpsi))
@@ -169,7 +169,7 @@ void Worker::ApplyChanges() {
             if (nbpsi.VID >= 0)
                 psi.NBVID = nbpsi.VID;
         }
-    }
+    }*/
 
     //turbo stuff:
     if (_turbo >= 0 && info.IsBoostSupported)
