@@ -9,6 +9,12 @@ if [ `id -u` != 0 ] ; then
   sudo='sudo -- '
 fi
 
+cmd='nounderclocking'
+#cmd='file'
+if grep --color=always -i "$cmd" /proc/cmdline; then
+  echo "!! CPU underclocking disabled due to kernel cmdline '$cmd'"
+  exit 0
+fi
 scriptdir="$(dirname "$0")"
 
 #on manjaro/arch
