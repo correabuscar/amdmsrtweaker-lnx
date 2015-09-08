@@ -35,8 +35,8 @@ void FindFraction(double value, const double* divisors,
 
 bool Info::Initialize() {
 //    CpuidRegs regs;
-    uint64_t msr;
-    uint32_t eax;
+//    uint64_t msr;
+//    uint32_t eax;
 
     // verify vendor = AMD ("AuthenticAMD")
     //assumed AMD
@@ -102,7 +102,8 @@ bool Info::Initialize() {
 //    fprintf(stderr, "MaxMulti post=%f", MaxMulti);
 //    fprintf(stderr, " minVID: %d %d\n", minVID, maxVID);
     MaxMulti=40.0;//24+16
-    MaxSoftwareMulti = MaxMulti;
+//    MaxSoftwareMulti = MaxMulti;
+    MaxSoftwareMulti = 22;
 
 //    MinVID = (minVID == 0 ? 0.0
 //              : DecodeVID(minVID));
@@ -115,29 +116,30 @@ bool Info::Initialize() {
     // is CBP (core performance boost) supported?
 //    regs = Cpuid(0x80000007);
 //    IsBoostSupported = (GetBits(regs.edx, 9, 1) == 1);//1 aka true
-    IsBoostSupported=1;
+    IsBoostSupported=1;//my CPU
+        NumBoostStates=1;//my CPU
 //    fprintf(stderr, " isBoost: %d\n", IsBoostSupported);
 
-    if (IsBoostSupported) {
+//    if (IsBoostSupported) {
         // is CPB disabled for the current core?
-        msr = Rdmsr(0xc0010015);
-        const bool cpbDis = (GetBits(msr, 25, 1) == 1);
+//        msr = Rdmsr(0xc0010015);
+//        const bool cpbDis = (GetBits(msr, 25, 1) == 1);
 
         // boost lock, number of boost P-states and boost source
-        eax = ReadPciConfig(AMD_CPU_DEVICE, 4, 0x15c);
+//        eax = ReadPciConfig(AMD_CPU_DEVICE, 4, 0x15c);
 //        IsBoostLocked = (Family == 0x12 ? true
 //                         : GetBits(eax, 31, 1) == 1);
-        IsBoostLocked = true;//my CPU
+//        IsBoostLocked = true;//my CPU
 //        NumBoostStates = (Family == 0x10 ? GetBits(eax, 2, 1)
 //                          : GetBits(eax, 2, 3));
-        NumBoostStates=1;//my CPU
+//        NumBoostStates=1;//my CPU
 //        fprintf(stderr, "num boost states: %d\n", NumBoostStates);
-        const int boostSrc = GetBits(eax, 0, 2);
+//        const int boostSrc = GetBits(eax, 0, 2);
 //        const bool isBoostSrcEnabled = (Family == 0x10 ? (boostSrc == 3)
 //                                        : (boostSrc == 1));
-        const bool isBoostSrcEnabled = (boostSrc == 1);
+//        const bool isBoostSrcEnabled = (boostSrc == 1);
 
-        IsBoostEnabled = (isBoostSrcEnabled && !cpbDis);
+//        IsBoostEnabled = (isBoostSrcEnabled && !cpbDis);
 //        fprintf(stderr, "boostsrc: %d %d cpbDis=%d boost:%d\n", boostSrc, isBoostSrcEnabled, cpbDis, IsBoostEnabled);//1 1 0 1
 
         // max multi for software P-states (families 0x10 and 0x15)
@@ -152,7 +154,7 @@ bool Info::Initialize() {
             MaxSoftwareMulti = (maxSoftwareMulti == 0 ? 63
                                 : maxSoftwareMulti);
         }*/
-    }
+//    }
 
     return true;
 }
@@ -308,7 +310,7 @@ void Info::WriteNBPState(const NBPStateInfo& info) const {
 }
 */
 
-void Info::SetCPBDis(bool enabled) const {
+/*void Info::SetCPBDis(bool enabled) const {
     if (!IsBoostSupported)
         throw ExceptionWithMessage("CPB not supported");
 
@@ -327,7 +329,7 @@ void Info::SetBoostSource(bool enabled) const {
                       : 0);
     SetBits(eax, bits, 0, 2);
     WritePciConfig(AMD_CPU_DEVICE, 4, 0x15c, eax);
-}
+}*/
 
 /*void Info::SetAPM(bool enabled) const {
     if (Family != 0x15)

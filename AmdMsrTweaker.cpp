@@ -79,15 +79,15 @@ int main(int argc, const char* argv[]) {
 
 void PrintInfo(const Info& info) {
 
-    cout << ".:. Turbo" << endl << "---" << endl;
-    if (!info.IsBoostSupported)
+    if (!info.IsBoostSupported) {
+      cout << ".:. Turbo" << endl << "---" << endl;
         cout << "  not supported" << endl;
-    else {
-        cout << "  " << (info.IsBoostEnabled ? "enabled" : "disabled") << endl;
-        cout << "  " << (info.IsBoostLocked ? "locked" : "unlocked") << endl;
+    } else {
+//        cout << "  " << (info.IsBoostEnabled ? "enabled" : "disabled") << endl;
+//        cout << "  " << (info.IsBoostLocked ? "locked" : "unlocked") << endl;
 
         if (info.MaxMulti != info.MaxSoftwareMulti)
-            cout << "  Max multiplier: " << (info.MaxMulti /* / info.multiScaleFactor */) << endl;
+            cout << "  Max multiplier: " << (info.MaxMulti /* / info.multiScaleFactor */) << " sofware limited to: " << info.MaxSoftwareMulti << endl;
     }
     cout << endl;
 

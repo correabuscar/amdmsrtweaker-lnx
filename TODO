@@ -9,6 +9,7 @@
 - reduce code to handle only my specific Z575 laptop CPU (family 0x12 == 18)
   * tested to work
   - remove all commented code
+  * remove boost code, it would work but why keep it since we don't intend on using it(ever); esp. since it gets rid of read/write to pci
 
 - then embed in kernel
 

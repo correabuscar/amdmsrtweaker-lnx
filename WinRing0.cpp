@@ -22,7 +22,7 @@
 
 using std::exception;
 using std::string;
-
+/*
 uint32_t ReadPciConfig(uint32_t device, uint32_t function, uint32_t regAddress) {
     uint32_t result;
     char path[255]= "\0";
@@ -57,7 +57,7 @@ void WritePciConfig(uint32_t device, uint32_t function, uint32_t regAddress, uin
     close(pci);
     fprintf(stdout," done.\n");
 }
-
+*/
 
 int inline get_num_cpu() {
 //    CpuidRegs regs = Cpuid(0x80000008);

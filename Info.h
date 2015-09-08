@@ -39,8 +39,8 @@ public:
 //    double multiScaleFactor;
 
     bool IsBoostSupported;
-    bool IsBoostEnabled;
-    bool IsBoostLocked;
+//    bool IsBoostEnabled;
+//    bool IsBoostLocked;
     int NumBoostStates;
 
 
@@ -56,8 +56,8 @@ public:
         , VIDStep(0.0125) //default step for pre SVI2 platforms
 //        , multiScaleFactor(1.0) //default for 100MHz REFCLK
         , IsBoostSupported(false)
-        , IsBoostEnabled(false)
-        , IsBoostLocked(false)
+//        , IsBoostEnabled(false)
+//        , IsBoostLocked(false)
         , NumBoostStates(0) {
     }
 
@@ -69,8 +69,8 @@ public:
 //    NBPStateInfo ReadNBPState(int index) const;
 //    void WriteNBPState(const NBPStateInfo& info) const;
 
-    void SetCPBDis(bool enabled) const;
-    void SetBoostSource(bool enabled) const;
+//    void SetCPBDis(bool enabled) const;
+//    void SetBoostSource(bool enabled) const;
 //    void SetAPM(bool enabled) const;
 
     int GetCurrentPState() const;

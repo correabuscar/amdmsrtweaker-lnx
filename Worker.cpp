@@ -48,7 +48,7 @@ bool Worker::ParseParams() {//int argc, const char* argv[]) {
       double strvid;
       int VID;
     };
-    const somestruct bootdefaults_psi[8]={//XXX: fyi only, do not use this!
+    const somestruct  __attribute__((unused)) bootdefaults_psi[8]={//XXX: fyi only, do not use this!
       {23.0, 1.325, 18}, //P0, boost
       {14.0, 1.0625, 39}, //P1, normal
       {13.0, 1.025, 42},
@@ -58,6 +58,7 @@ bool Worker::ParseParams() {//int argc, const char* argv[]) {
       {9.0, 0.95, 48},
       {8.0, 0.925, 50} //P7, normal
     };
+    //bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
 
     const somestruct allpsi[8]={//stable underclocking for my CPU:
       {22.0, 1.0875, 37}, //P0, boost
@@ -222,8 +223,8 @@ void Worker::ApplyChanges() {
     }*/
 
     //turbo stuff: to enable or disable turbo set _turbo to 1 or 0 (default: -1, to not touch!)
-    if (_turbo >= 0 && info.IsBoostSupported)
-        info.SetBoostSource(_turbo == 1);
+//    if (_turbo >= 0 && info.IsBoostSupported)
+//        info.SetBoostSource(_turbo == 1);
 //    if (_apm >= 0 && info.Family == 0x15)
 //        info.SetAPM(_apm == 1);
 
@@ -234,8 +235,8 @@ void Worker::ApplyChanges() {
             info.WritePState(psi);
     }
 
-    if (_turbo >= 0 && info.IsBoostSupported)
-        info.SetCPBDis(_turbo == 1);
+//    if (_turbo >= 0 && info.IsBoostSupported)
+//        info.SetCPBDis(_turbo == 1);
 
     const int currentPState = info.GetCurrentPState();
 /*    const int newPState = (_pState >= 0 ? _pState : currentPState);

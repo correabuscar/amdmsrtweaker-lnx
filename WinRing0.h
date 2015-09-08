@@ -21,8 +21,8 @@ struct CpuidRegs {
 
 static const uint32_t AMD_CPU_DEVICE = 0x18; // first AMD CPU
 
-uint32_t ReadPciConfig(uint32_t device, uint32_t function, uint32_t regAddress);
-void WritePciConfig(uint32_t device, uint32_t function, uint32_t regAddress, uint32_t value);
+//uint32_t ReadPciConfig(uint32_t device, uint32_t function, uint32_t regAddress);
+//void WritePciConfig(uint32_t device, uint32_t function, uint32_t regAddress, uint32_t value);
 
 uint64_t Rdmsr(uint32_t index);
 void Wrmsr(uint32_t index, const uint64_t& value);
