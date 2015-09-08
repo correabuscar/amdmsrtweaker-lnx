@@ -16,6 +16,8 @@
 
 #include <inttypes.h>
 
+#include <assert.h>
+
 //#include <include/linux/smp.h>
 
 using std::exception;
@@ -57,32 +59,56 @@ void WritePciConfig(uint32_t device, uint32_t function, uint32_t regAddress, uin
 }
 
 
-uint64_t Rdmsr(uint32_t index) {
-    uint64_t result;
-
-    fprintf(stdout,"!! Rdmsr: %x ... ", index);
-    int msr = open("/dev/cpu/0/msr", O_RDONLY);
-    if (msr == -1) {
-        perror("Failed to open msr device for reading. You need: # modprobe msr");
-        exit(-1);
-    }
-    pread(msr, &result, sizeof(result), index);
-    close(msr);
-    fprintf(stdout," done.\n");
-
-    return result;
+int inline get_num_cpu() {
+//    CpuidRegs regs = Cpuid(0x80000008);
+//    return 1 + (regs.ecx&0xff);
+    return 4;//assume 4 cores - my CPU
 }
 
-/*int get_num_cpu() {
-    CpuidRegs regs = Cpuid(0x80000008);
-    return 1 + (regs.ecx&0xff);
-}*/
+uint64_t Rdmsr(uint32_t index) {
+    uint64_t result[4];
+    char path[255]= "\0";
+
+    for (int i = 0; i < get_num_cpu(); i++) {
+      int ret=sprintf(path, "/dev/cpu/%d/msr", i);
+      if (ret<0) {
+        perror("snprintf failed");
+        fprintf(stderr,"!! snprintf ret=%d\n",ret);
+        exit(-1);
+      }
+
+      fprintf(stdout,"!! Rdmsr: %s idx:%x ... ", path, index);
+      int msr = open(path, O_RDONLY);
+      if (msr == -1) {
+        perror("Failed to open msr device for reading. You need: # modprobe msr");
+        exit(-1);
+      }
+      if (sizeof(result[i]) != pread(msr, &(result[i]), sizeof(result[i]), index)) {
+        perror("Failed to read from msr device");
+      }
+      close(msr);
+      fprintf(stdout," done. (result==%"PRIu64")\n", result[i]);
+      if (i>0) {
+        if (result[i-1] != result[i]) {
+          perror("Rdmsr: different results for cores");
+          fprintf(stderr,"!! core[%d]==%"PRIu64" != core[%d]==%"PRIu64"\n", i-1, result[i-1], i, result[i]);
+        }
+      }
+    }
+
+    return result[0];
+}
+
 
 void Wrmsr(uint32_t index, const uint64_t& value) {
     char path[255]= "\0";
 
-    for (int i = 0; i < 4 /*get_num_cpu()*/; i++) { //assume 4 cores
-        sprintf(path, "/dev/cpu/%d/msr", i);
+    for (int i = 0; i < get_num_cpu(); i++) {
+        int ret=sprintf(path, "/dev/cpu/%d/msr", i);
+        if (ret<0) {
+          perror("snprintf failed");
+          exit(-1);
+        }
         //fprintf(stdout,"!! Wrmsr: %s idx:%"PRIu32" val:%"PRIu64"\n", path, index, value);
         fprintf(stdout,"!! Wrmsr: %s idx:%x val:%"PRIu64" ... ", path, index, value);
         int msr = open(path, O_WRONLY);
