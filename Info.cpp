@@ -47,6 +47,7 @@ bool Info::Initialize() {
     // check family
 //    regs = Cpuid(0x80000001);
 //    Family = GetBits(regs.eax, 8, 4) + GetBits(regs.eax, 20, 8);
+  //build/1packages/kernel/linuxgit/makepkg/linux-git/src/linux-git/arch/x86/kernel/cpuid.c +99
     Family = 0x12;//assume my CPU
 //    if (!(Family == 0x10 || Family == 0x12/*aka 18 decimal cat /proc/cpuinfo */ || Family == 0x14 || Family == 0x15))
 //        return false;
@@ -103,7 +104,7 @@ bool Info::Initialize() {
 //    fprintf(stderr, " minVID: %d %d\n", minVID, maxVID);
     MaxMulti=40.0;//24+16
 //    MaxSoftwareMulti = MaxMulti;
-    MaxSoftwareMulti = 22;
+//    MaxSoftwareMulti = 22;
 
 //    MinVID = (minVID == 0 ? 0.0
 //              : DecodeVID(minVID));
@@ -189,7 +190,7 @@ PStateInfo Info::ReadPState(int index) const {
     else*/
         result.VID = GetBits(msr, 9, 7);
 
-    fprintf(stdout,"index:%d fid:%d did:%d multi:%f vid:%d\n", result.Index, fid, did, result.Multi, result.VID);
+    fprintf(stdout,"!! ReadPState index:%d fid:%d did:%d multi:%f vid:%d\n", result.Index, fid, did, result.Multi, result.VID);
 /*    if (!(Family == 0x12 || Family == 0x14)) {
         const int nbDid = GetBits(msr, 22, 1);
         result.NBPState = nbDid;
@@ -208,33 +209,38 @@ void Info::WritePState(const PStateInfo& info) const {
     const uint32_t regIndex = 0xc0010064 + info.Index;
     uint64_t msr = Rdmsr(regIndex);
 
-    if (info.Multi >= 0) {
+    assert(info.Multi >= 8);
+    assert(info.Multi <= 22);
+//    if (info.Multi >= 0) {
         int fid, did;
         EncodeMulti(info.Multi, fid, did);
-        fprintf(stdout,"fid:%d did:%d", fid, did);
+//        fprintf(stdout,"!! Write PState fid:%d did:%d", fid, did);
 
 /*        if (Family == 0x14) {
             SetBits(msr, fid, 4, 5); // DID MSD
             SetBits(msr, did, 0, 4); // DID LSD
         } else */
-        if (Family == 0x12) {
+        assert(0x12 == Family);
+//        if (Family == 0x12) {
             SetBits(msr, fid, 4, 5);
             SetBits(msr, did, 0, 4);
-        } else abort();
+//        } else abort();
         /* else {
             SetBits(msr, fid, 0, 6);
             SetBits(msr, did, 6, 3);
         }*/
-    }
+//    }
 
-    if (info.VID >= 0) {
-        fprintf(stdout," vid:%d", info.VID);
+            assert(info.VID>=37);
+            assert(info.VID<=67);
+//    if (info.VID >= 0) {
+//        fprintf(stdout," vid:%d", info.VID);
 /*        //on SVI2 platforms, VID is 8 bits
         if (Family == 0x15 && ((Model > 0xF && Model < 0x20) || (Model > 0x2F && Model < 0x40)))
             SetBits(msr, info.VID, 9, 8);
         else*/
             SetBits(msr, info.VID, 9, 7);
-    }
+//    }
 
 /*    if (info.NBPState >= 0) {
         if (!(Family == 0x12 || Family == 0x14)) {
@@ -249,8 +255,10 @@ void Info::WritePState(const PStateInfo& info) const {
         }
     }*/
 
-    fprintf(stdout, "\n");
+    fprintf(stdout,"!! Write PState fid:%d did:%d vid:%d ... ", fid, did, info.VID);
+//    fprintf(stdout, "\n");
     Wrmsr(regIndex, msr);
+    fprintf(stdout,"done.\n");
 }
 
 

@@ -33,7 +33,7 @@ public:
 //    int NumNBPStates;
 
     double MinMulti, MaxMulti; // internal ones for 100 MHz reference
-    double MaxSoftwareMulti; // for software (i.e., non-boost) P-states
+//    double MaxSoftwareMulti; // for software (i.e., non-boost) P-states
     double MinVID, MaxVID;
     double VIDStep;
 //    double multiScaleFactor;
@@ -51,7 +51,7 @@ public:
         , NumPStates(0)
 //        , NumNBPStates(2) //except family 0x15, we have at least 2 NB P-States
         , MinMulti(0.0), MaxMulti(0.0)
-        , MaxSoftwareMulti(0.0)
+//        , MaxSoftwareMulti(0.0)
         , MinVID(0.0), MaxVID(0.0)
         , VIDStep(0.0125) //default step for pre SVI2 platforms
 //        , multiScaleFactor(1.0) //default for 100MHz REFCLK

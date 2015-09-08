@@ -192,9 +192,9 @@ bool Worker::ParseParams() {//int argc, const char* argv[]) {
 }
 
 
-static bool ContainsChanges(const PStateInfo& info) {
-    return (info.Multi >= 0 || info.VID >= 0 );//|| info.NBVID >= 0 || info.NBPState >= 0);
-}
+//static bool ContainsChanges(const PStateInfo& info) {
+//    return (info.Multi >= 0 || info.VID >= 0 );//|| info.NBVID >= 0 || info.NBPState >= 0);
+//}
 //static bool ContainsChanges(const NBPStateInfo& info) {
 //    return (info.Multi >= 0 || info.VID >= 0);
 //}
@@ -230,9 +230,9 @@ void Worker::ApplyChanges() {
 
     //pstates stuff:
     for (size_t i = 0; i < _pStates.size(); i++) {
-        const PStateInfo& psi = _pStates[i];
-        if (ContainsChanges(psi))
-            info.WritePState(psi);
+//        const PStateInfo& psi = _pStates[i];
+//        if (ContainsChanges(psi))
+            info.WritePState(_pStates[i]);
     }
 
 //    if (_turbo >= 0 && info.IsBoostSupported)

@@ -13,6 +13,8 @@
 
 #include <string.h>
 
+#include <assert.h>
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -49,7 +51,7 @@ int main(int argc, const char* argv[]) {
     cout << ".:. General" << endl << "---" << endl;
     cout << "  AMD family 0x" << std::hex << info.Family << std::dec << " (" << info.Family << " dec)" << std::hex << ", model 0x" << info.Model << std::dec << " CPU, " << info.NumCores << " cores" << endl;
     cout << "  Default reference clock: " << /*info.multiScaleFactor * */ 100 << " MHz" << endl;
-    cout << "  Available multipliers: " << (info.MinMulti /*/ info.multiScaleFactor*/) << " .. " << (info.MaxSoftwareMulti /* / info.multiScaleFactor*/) << endl;
+    cout << "  Available multipliers: " << (info.MinMulti /*/ info.multiScaleFactor*/) << " .. " << (info.MaxMulti /* / info.multiScaleFactor*/) << endl;
     cout << "  Available voltage IDs: " << info.MinVID << " .. " << info.MaxVID << " (" << info.VIDStep << " steps)" << endl;
     cout << endl;
 
@@ -86,13 +88,14 @@ void PrintInfo(const Info& info) {
 //        cout << "  " << (info.IsBoostEnabled ? "enabled" : "disabled") << endl;
 //        cout << "  " << (info.IsBoostLocked ? "locked" : "unlocked") << endl;
 
-        if (info.MaxMulti != info.MaxSoftwareMulti)
-            cout << "  Max multiplier: " << (info.MaxMulti /* / info.multiScaleFactor */) << " sofware limited to: " << info.MaxSoftwareMulti << endl;
+//        if (info.MaxMulti != info.MaxSoftwareMulti)
+            cout << "  Max multiplier: " << (info.MaxMulti /* / info.multiScaleFactor */) << endl;//", sofware limited to: " << info.MaxSoftwareMulti << endl;
     }
     cout << endl;
 
     cout << ".:. P-states" << endl << "---" << endl;
-    cout << "  " << info.NumPStates << " of " << (info.Family == 0x10 ? 5 : 8) << " enabled (P0 .. P" << (info.NumPStates - 1) << ")" << endl;
+    cout << "  " << info.NumPStates << " of 8 enabled (P0 .. P" << (info.NumPStates - 1) << ")" << endl;
+    assert(8 == info.NumPStates);
 
     if (info.IsBoostSupported && info.NumBoostStates > 0) {
         cout << "  Turbo P-states:";
