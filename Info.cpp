@@ -210,20 +210,22 @@ void Info::WritePState(const PStateInfo& info) const {
     const uint32_t regIndex = 0xc0010064 + info.Index;
     uint64_t msr = Rdmsr(regIndex);
 
-    assert(info.Multi >= 8);
-    assert(info.Multi <= 22);
-    assert(0x12 == Family);
 //    if (info.Multi >= 0) {
 //    if (Family == 0x12) {
-    {
+
       const int fidbefore = GetBits(msr, 4, 5);
       const int didbefore = GetBits(msr, 0, 4);
       const double Multi = DecodeMulti(fidbefore, didbefore);
       const int VID = GetBits(msr, 9, 7);
       fprintf(stdout,"!! Write PState(1of3) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
-    }
+      
+    assert(info.Multi >= 8);
+    assert(info.Multi <= 22);
+    assert(0x12 == Family);
+
         int fid, did;
         EncodeMulti(info.Multi, fid, did);
+        if ((fid != fidbefore) || (did != didbefore)) {
 //        fprintf(stdout,"!! Write PState fid:%d did:%d", fid, did);
 
 /*        if (Family == 0x14) {
@@ -268,6 +270,9 @@ void Info::WritePState(const PStateInfo& info) const {
 //    fprintf(stdout, "\n");
     Wrmsr(regIndex, msr);
     fprintf(stdout,"!! Write PState(3of3) write: done.\n");
+    } else {
+      fprintf(stdout,"!! Write PState(2of3 3of3) not write needed: same values. Done.\n");
+    }
 }
 
 
