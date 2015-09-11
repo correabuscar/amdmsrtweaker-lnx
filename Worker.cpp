@@ -252,7 +252,7 @@ void Worker::ApplyChanges() {
             const int tempPState = (currentPState == lastpstate ? 0 : lastpstate);
           fprintf(stdout,"!! currentpstate:%d temppstate:%d\n", currentPState, tempPState);
             info.SetCurrentPState(tempPState);
-            sleep(1);
+            sleep(1);//1 second
             info.SetCurrentPState(currentPState);
 //        }
 //    }

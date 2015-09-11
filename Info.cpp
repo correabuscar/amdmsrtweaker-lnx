@@ -117,8 +117,8 @@ bool Info::Initialize() {
     // is CBP (core performance boost) supported?
 //    regs = Cpuid(0x80000007);
 //    IsBoostSupported = (GetBits(regs.edx, 9, 1) == 1);//1 aka true
-    IsBoostSupported=1;//my CPU
-        NumBoostStates=1;//my CPU
+//    IsBoostSupported=1;//my CPU
+//        NumBoostStates=1;//my CPU
 //    fprintf(stderr, " isBoost: %d\n", IsBoostSupported);
 
 //    if (IsBoostSupported) {
@@ -365,7 +365,7 @@ void Info::SetBoostSource(bool enabled) const {
 
 int Info::GetCurrentPState() const {
     const uint64_t msr = Rdmsr(0xc0010071);
-    const int i = GetBits(msr, 16, 3);
+    const int i = GetBits(msr, 16, 3);//0..7
     return i;
 }
 
@@ -373,7 +373,7 @@ void Info::SetCurrentPState(int index) const {
     if (index < 0 || index >= NumPStates)
         throw ExceptionWithMessage("P-state index out of range");
 
-    index -= NumBoostStates;
+    index -= 1;//NumBoostStates;
     if (index < 0)
         index = 0;
 

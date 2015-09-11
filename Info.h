@@ -38,10 +38,10 @@ public:
     double VIDStep;
 //    double multiScaleFactor;
 
-    bool IsBoostSupported;
+//    bool IsBoostSupported;
 //    bool IsBoostEnabled;
 //    bool IsBoostLocked;
-    int NumBoostStates;
+//    int NumBoostStates;
 
 
     Info()
@@ -55,11 +55,11 @@ public:
         , MinVID(0.0), MaxVID(0.0)
         , VIDStep(0.0125) //default step for pre SVI2 platforms
 //        , multiScaleFactor(1.0) //default for 100MHz REFCLK
-        , IsBoostSupported(false)
+//        , IsBoostSupported(false)
 //        , IsBoostEnabled(false)
 //        , IsBoostLocked(false)
-        , NumBoostStates(0) {
-    }
+//        , NumBoostStates(0)
+        {}
 
     bool Initialize();
 

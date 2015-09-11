@@ -81,28 +81,28 @@ int main(int argc, const char* argv[]) {
 
 void PrintInfo(const Info& info) {
 
-    if (!info.IsBoostSupported) {
-      cout << ".:. Turbo" << endl << "---" << endl;
-        cout << "  not supported" << endl;
-    } else {
+//    if (!info.IsBoostSupported) {
+//      cout << ".:. Turbo" << endl << "---" << endl;
+//        cout << "  not supported" << endl;
+//    } else {
 //        cout << "  " << (info.IsBoostEnabled ? "enabled" : "disabled") << endl;
 //        cout << "  " << (info.IsBoostLocked ? "locked" : "unlocked") << endl;
 
 //        if (info.MaxMulti != info.MaxSoftwareMulti)
             cout << "  Max multiplier: " << (info.MaxMulti /* / info.multiScaleFactor */) << endl;//", sofware limited to: " << info.MaxSoftwareMulti << endl;
-    }
+//    }
     cout << endl;
 
     cout << ".:. P-states" << endl << "---" << endl;
     cout << "  " << info.NumPStates << " of 8 enabled (P0 .. P" << (info.NumPStates - 1) << ")" << endl;
     assert(8 == info.NumPStates);
 
-    if (info.IsBoostSupported && info.NumBoostStates > 0) {
+//    if (info.IsBoostSupported && info.NumBoostStates > 0) {
         cout << "  Turbo P-states:";
-        for (int i = 0; i < info.NumBoostStates; i++)
-            cout << " P" << i;
+//        for (int i = 0; i < info.NumBoostStates; i++)
+            cout << " P" << 0;
         cout << endl;
-    }
+//    }
 
     cout << "  ---" << endl;
 
