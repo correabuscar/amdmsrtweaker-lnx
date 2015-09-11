@@ -77,7 +77,7 @@ uint64_t Rdmsr(uint32_t index) {
         exit(-1);
       }
 
-      fprintf(stdout,"!! Rdmsr: %s idx:%x ... %lu bytes ... ", path, index, sizeof(result[i]));
+      fprintf(stdout,"  !! Rdmsr: %s idx:%x ... %lu bytes ... ", path, index, sizeof(result[i]));
       int msr = open(path, O_RDONLY);
       if (msr == -1) {
         perror("Failed to open msr device for reading. You need: # modprobe msr");
@@ -110,7 +110,7 @@ void Wrmsr(uint32_t index, const uint64_t& value) {
           exit(-1);
         }
         //fprintf(stdout,"!! Wrmsr: %s idx:%"PRIu32" val:%"PRIu64"\n", path, index, value);
-        fprintf(stdout,"!! Wrmsr: %s idx:%x val:%"PRIu64" ... ", path, index, value);
+        fprintf(stdout,"  !! Wrmsr: %s idx:%x val:%"PRIu64" ... ", path, index, value);
         int msr = open(path, O_WRONLY);
         if (msr == -1) {
             perror("Failed to open msr device for writing");

@@ -191,7 +191,7 @@ PStateInfo Info::ReadPState(int index) const {
     else*/
         result.VID = GetBits(msr, 9, 7);
 
-    fprintf(stdout,"!! ReadPState index:%d fid:%d did:%d multi:%f vid:%d\n", result.Index, fid, did, result.Multi, result.VID);
+    fprintf(stdout,"!! ReadPState index:%d fid:%d did:%d multi:%02.2f vid:%d\n", result.Index, fid, did, result.Multi, result.VID);
 /*    if (!(Family == 0x12 || Family == 0x14)) {
         const int nbDid = GetBits(msr, 22, 1);
         result.NBPState = nbDid;
@@ -212,7 +212,16 @@ void Info::WritePState(const PStateInfo& info) const {
 
     assert(info.Multi >= 8);
     assert(info.Multi <= 22);
+    assert(0x12 == Family);
 //    if (info.Multi >= 0) {
+//    if (Family == 0x12) {
+    {
+      const int fidbefore = GetBits(msr, 4, 5);
+      const int didbefore = GetBits(msr, 0, 4);
+      const double Multi = DecodeMulti(fidbefore, didbefore);
+      const int VID = GetBits(msr, 9, 7);
+      fprintf(stdout,"!! Write PState(1of3) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
+    }
         int fid, did;
         EncodeMulti(info.Multi, fid, did);
 //        fprintf(stdout,"!! Write PState fid:%d did:%d", fid, did);
@@ -221,7 +230,6 @@ void Info::WritePState(const PStateInfo& info) const {
             SetBits(msr, fid, 4, 5); // DID MSD
             SetBits(msr, did, 0, 4); // DID LSD
         } else */
-        assert(0x12 == Family);
 //        if (Family == 0x12) {
             SetBits(msr, fid, 4, 5);
             SetBits(msr, did, 0, 4);
@@ -256,10 +264,10 @@ void Info::WritePState(const PStateInfo& info) const {
         }
     }*/
 
-    fprintf(stdout,"!! Write PState fid:%d did:%d vid:%d ... ", fid, did, info.VID);
+    fprintf(stdout,"!! Write PState(2of3) write:%d did:%d vid:%d (multi:%02.2f) ...\n", fid, did, info.VID, info.Multi);
 //    fprintf(stdout, "\n");
     Wrmsr(regIndex, msr);
-    fprintf(stdout,"done.\n");
+    fprintf(stdout,"!! Write PState(3of3) write: done.\n");
 }
 
 
