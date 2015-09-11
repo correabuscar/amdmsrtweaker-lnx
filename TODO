@@ -12,4 +12,10 @@
   * remove boost code, it would work but why keep it since we don't intend on using it(ever); esp. since it gets rid of read/write to pci
 
 - then embed in kernel
+  * see /arch/x86/kernel/msr.c
+    \ http://lxr.free-electrons.com/source/arch/x86/include/asm/msr.h#L233
+    \ vim /home/emacs/build/1packages/kernel/linuxgit/makepkg/linux-git/src/linux-git/arch/x86/kernel/msr.c
+  * also see arch/x86/kernel/cpuid.c  for making sure the cpu is my AMD cpu before applying msr values on it.
+    \ vim /home/emacs/build/1packages/kernel/linuxgit/makepkg/linux-git/src/linux-git/arch/x86/kernel/cpuid.c
+
 

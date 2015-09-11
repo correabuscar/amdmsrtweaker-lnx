@@ -66,7 +66,7 @@ int inline get_num_cpu() {
 }
 
 uint64_t Rdmsr(uint32_t index) {
-    uint64_t result[4];
+    uint64_t result[4]={0,0,0,0};
     char path[255]= "\0";
 
     for (int i = 0; i < get_num_cpu(); i++) {
@@ -77,7 +77,7 @@ uint64_t Rdmsr(uint32_t index) {
         exit(-1);
       }
 
-      fprintf(stdout,"!! Rdmsr: %s idx:%x ... ", path, index);
+      fprintf(stdout,"!! Rdmsr: %s idx:%x ... %lu bytes ... ", path, index, sizeof(result[i]));
       int msr = open(path, O_RDONLY);
       if (msr == -1) {
         perror("Failed to open msr device for reading. You need: # modprobe msr");

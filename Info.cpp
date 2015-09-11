@@ -173,10 +173,11 @@ PStateInfo Info::ReadPState(int index) const {
         fid = GetBits(msr, 4, 5); // DID MSD
         did = GetBits(msr, 0, 4); // DID LSD
     } else */
-    if (Family == 0x12) {
+    assert(0x12 == Family);
+//    if (Family == 0x12) {
         fid = GetBits(msr, 4, 5);
         did = GetBits(msr, 0, 4);
-    } else abort();
+//    } else abort();
     /* else {
         fid = GetBits(msr, 0, 6);
         did = GetBits(msr, 6, 3);
