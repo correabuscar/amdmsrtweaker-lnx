@@ -40,7 +40,7 @@ using std::vector;
 }*/
 
 
-bool Worker::ParseParams() {//int argc, const char* argv[]) {
+void Worker::ParseParams() {
     const Info& info = *_info;
 
     struct somestruct {
@@ -89,13 +89,6 @@ bool Worker::ParseParams() {//int argc, const char* argv[]) {
         assert( allpsi[i].VID/*eg. 37*/ == _pStates[i].VID);
         assert( i == _pStates[i].Index );
 //        assert(false);
-    }
-//    for (int i = 0; i < info.NumNBPStates; i++) {
-//        _nbPStates.push_back(nbpsi);
-//        _nbPStates.back().Index = i;
-//    }
-
-    for (int i = 0; i < info.NumPStates; i++) {
             fprintf(stdout,"pstate:%d multi:%02.2f vid:%d\n",// voltage:%d\n", 
                 i, 
                 _pStates[i].Multi,
@@ -103,6 +96,19 @@ bool Worker::ParseParams() {//int argc, const char* argv[]) {
                 //,DecodeVID(_pStates[i].VID
                   );
     }
+//    for (int i = 0; i < info.NumNBPStates; i++) {
+//        _nbPStates.push_back(nbpsi);
+//        _nbPStates.back().Index = i;
+//    }
+
+/*    for (int i = 0; i < info.NumPStates; i++) {
+            fprintf(stdout,"pstate:%d multi:%02.2f vid:%d\n",// voltage:%d\n", 
+                i, 
+                _pStates[i].Multi,
+                _pStates[i].VID
+                //,DecodeVID(_pStates[i].VID
+                  );
+    }*/
 
 /*    for (int i = 1; i < argc; i++) {
         const string param(argv[i]);
@@ -187,7 +193,7 @@ bool Worker::ParseParams() {//int argc, const char* argv[]) {
         return false;
     }*/
 
-    return true;
+//    return true;
 //    return false;
 }
 

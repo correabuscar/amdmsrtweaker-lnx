@@ -54,9 +54,10 @@ int main(int argc, const char* argv[]) {
         if ((argc > 1)and(0 == strncmp("I wanna brick my system!", argv[1],25))) {//we make sure, because we're about to apply preset voltages!(hardcoded in source code)
             Worker worker(info);
 
-            if (!worker.ParseParams()) {
+            worker.ParseParams();
+/*            if (!worker.ParseParams()) {
                 return 3;
-            }
+            }*/
 
             fprintf(stdout,"Before:\n");
             PrintInfo(info);

@@ -21,7 +21,7 @@ public:
         , _pState(-1)
     { }
 
-    bool ParseParams();//int argc, const char* argv[]);
+    void ParseParams();
 
     void ApplyChanges();
 

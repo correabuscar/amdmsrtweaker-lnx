@@ -462,11 +462,11 @@ inline void Info::EncodeMulti(const double multi, int& fid, int& did) const {
     }*/
 
     const int minNumerator = 16; // numerator: 0x10 = 16 as fixed offset
-    int maxNumerator;
+//    const int maxNumerator;
 //    const double* divisors;
 
 //    if (Family == 0x12) {
-        maxNumerator = 31 + minNumerator; // 5 bits => max 2^5-1 = 31
+        const int maxNumerator = 31 + minNumerator; // 5 bits => max 2^5-1 = 31
 //        divisors = DIVISORS_12;
 //    } else abort();
 /*{
