@@ -22,20 +22,28 @@ struct PStateInfo {
 //    int VID;
 //};
 
+#define NUMPSTATES 8
+#define CPUFAMILY 0x12
+#define CPUMODEL 0x1
+#define CPUMINMULTI 1.0
+#define CPUMAXMULTI 40.0 //24+16
+//#define CPUMINVID 
+//#define CPUMAXVID 
+#define CPUVIDSTEP 0.0125 //fixed; default step for pre SVI2 platforms
 
 class Info {
 public:
 
-    int Family;
-    int Model;
-    int NumCores;
-    int NumPStates;
+//    int Family;
+//    int Model;
+//    int NumCores;
+//    int NumPStates;
 //    int NumNBPStates;
 
-    double MinMulti, MaxMulti; // internal ones for 100 MHz reference
+//    double MinMulti, MaxMulti; // internal ones for 100 MHz reference
 //    double MaxSoftwareMulti; // for software (i.e., non-boost) P-states
     double MinVID, MaxVID;
-    double VIDStep;
+//    double VIDStep;
 //    double multiScaleFactor;
 
 //    bool IsBoostSupported;
@@ -44,17 +52,18 @@ public:
 //    int NumBoostStates;
 
 
-    Info()
-        : Family(0x12) //my CPU
-        , Model(0x1)
-        , NumCores(4)
-        , NumPStates(8)
+    Info() :
+//        : Family(0x12) //my CPU
+//        , Model(0x1)
+//        , NumCores(4)
+//        , NumPStates(NUMPSTATES)
 //        , NumNBPStates(2) //except family 0x15, we have at least 2 NB P-States
-        , MinMulti(1.0), MaxMulti(40.0)//24+16
+//        MinMulti(1.0),
+//        MaxMulti(40.0)//24+16
 //        , MaxSoftwareMulti(0.0)
-        , MinVID(DecodeVID(88))
+         MinVID(DecodeVID(88))
         , MaxVID(DecodeVID(18))//not an error, it's less! that is: 124-18=106
-        , VIDStep(0.0125) //default step for pre SVI2 platforms
+//        , VIDStep(0.0125) //default step for pre SVI2 platforms
 //        , multiScaleFactor(1.0) //default for 100MHz REFCLK
 //        , IsBoostSupported(false)
 //        , IsBoostEnabled(false)
@@ -86,3 +95,4 @@ private:
     inline void EncodeMulti(double multi, int& fid, int& did) const;
 
 };
+

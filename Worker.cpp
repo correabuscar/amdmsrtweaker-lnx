@@ -80,7 +80,7 @@ void Worker::ParseParams() {
 
 //    fprintf(stdout,"Parsing command line as:\n");
     fprintf(stdout,"Hardcoded values:\n");
-    for (int i = 0; i < info.NumPStates; i++) {
+    for (int i = 0; i < NUMPSTATES; i++) {
         _pStates.push_back(psi);
 //        _pStates.back().Index = i;//very important!
         _pStates[i].Index = i;//^ equivalent
@@ -258,7 +258,7 @@ void Worker::ApplyChanges() {
 
     //we switch to another pstate temporarily, then back again so that it takes effect (apparently that's why, unsure, it's not my coding)
 //        if (ContainsChanges(_pStates[currentPState])) {
-    const int lastpstate=info.NumPStates - 1;//aka the lowest speed one
+    const int lastpstate= NUMPSTATES - 1;//aka the lowest speed one
             const int tempPState = (currentPState == lastpstate ? 0 : lastpstate);
           fprintf(stdout,"!! currentpstate:%d temppstate:%d\n", currentPState, tempPState);
             info.SetCurrentPState(tempPState);

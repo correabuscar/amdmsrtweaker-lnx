@@ -45,10 +45,11 @@ int main(int argc, const char* argv[]) {
 
 
     cout << ".:. General" << endl << "---" << endl;
-    cout << "  AMD family 0x" << std::hex << info.Family << std::dec << " (" << info.Family << " dec)" << std::hex << ", model 0x" << info.Model << std::dec << " CPU, " << info.NumCores << " cores" << endl;
+//    cout << "  AMD family 0x" << std::hex << info.Family << std::dec << " (" << info.Family << " dec)" << std::hex << ", model 0x" << info.Model << std::dec << " CPU, " << info.NumCores << " cores" << endl;
+    cout << "  AMD family 0x" << std::hex << 0x12 << std::dec << " (" << 18 << " dec)" << std::hex << ", model 0x1" << std::dec << " CPU, " << 4 << " cores" << endl;
     cout << "  Default reference clock: " << /*info.multiScaleFactor * */ 100 << " MHz" << endl;
-    cout << "  Available multipliers: " << (info.MinMulti /*/ info.multiScaleFactor*/) << " .. " << (info.MaxMulti /* / info.multiScaleFactor*/) << endl;
-    cout << "  Available voltage IDs: " << info.MinVID << " .. " << info.MaxVID << " (" << info.VIDStep << " steps)" << endl;
+//    cout << "  Available multipliers: " << (info.MinMulti /*/ info.multiScaleFactor*/) << " .. " << (info.MaxMulti /* / info.multiScaleFactor*/) << endl;
+    cout << "  Available voltage IDs: " << info.MinVID << " .. " << info.MaxVID << " (" << CPUVIDSTEP << " steps)" << endl;
     cout << endl;
 
         if ((argc > 1)and(0 == strncmp("I wanna brick my system!", argv[1],25))) {//we make sure, because we're about to apply preset voltages!(hardcoded in source code)
@@ -86,24 +87,24 @@ void PrintInfo(const Info& info) {
 //        cout << "  " << (info.IsBoostLocked ? "locked" : "unlocked") << endl;
 
 //        if (info.MaxMulti != info.MaxSoftwareMulti)
-            cout << "  Max multiplier: " << (info.MaxMulti /* / info.multiScaleFactor */) << endl;//", sofware limited to: " << info.MaxSoftwareMulti << endl;
+//            cout << "  Max multiplier: " << (info.MaxMulti /* / info.multiScaleFactor */) << endl;//", sofware limited to: " << info.MaxSoftwareMulti << endl;
 //    }
-    cout << endl;
+//    cout << endl;
 
-    cout << ".:. P-states" << endl << "---" << endl;
-    cout << "  " << info.NumPStates << " of 8 enabled (P0 .. P" << (info.NumPStates - 1) << ")" << endl;
-    assert(8 == info.NumPStates);
+//    cout << ".:. P-states" << endl << "---" << endl;
+//    cout << "  " << info.NumPStates << " of 8 enabled (P0 .. P" << (info.NumPStates - 1) << ")" << endl;
+//    assert(8 == info.NumPStates);
 
 //    if (info.IsBoostSupported && info.NumBoostStates > 0) {
-        cout << "  Turbo P-states:";
+//        cout << "  Turbo P-states:";
 //        for (int i = 0; i < info.NumBoostStates; i++)
-            cout << " P" << 0;
-        cout << endl;
+//            cout << " P" << 0;
+//        cout << endl;
 //    }
 
-    cout << "  ---" << endl;
+//    cout << "  ---" << endl;
 
-    for (int i = 0; i < info.NumPStates; i++) {
+    for (int i = 0; i < NUMPSTATES; i++) {
         const PStateInfo pi = info.ReadPState(i);
 
         cout << "  P" << i << ": " << (pi.Multi /* / info.multiScaleFactor*/ ) << "x at " << info.DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;

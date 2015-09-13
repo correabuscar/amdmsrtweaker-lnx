@@ -199,7 +199,7 @@ PStateInfo Info::ReadPState(int index) const {
         fid = GetBits(msr, 4, 5); // DID MSD
         did = GetBits(msr, 0, 4); // DID LSD
     } else */
-    assert(0x12 == Family);
+//    assert(0x12 == Family);
 //    if (Family == 0x12) {
         fid = GetBits(msr, 4, 5);
         did = GetBits(msr, 0, 4);
@@ -247,7 +247,7 @@ bool Info::WritePState(const PStateInfo& info) const {
 
   assert(info.Multi >= 8);
   assert(info.Multi <= 22);
-  assert(0x12 == Family);
+ // assert(0x12 == Family);
 
   int fid, did;
   EncodeMulti(info.Multi, fid, did);
@@ -397,7 +397,7 @@ int Info::GetCurrentPState() const {
 }
 
 void Info::SetCurrentPState(int index) const {
-    if (index < 0 || index >= NumPStates)
+    if (index < 0 || index >= NUMPSTATES)
         throw ExceptionWithMessage("P-state index out of range");
 
     index -= 1;//NumBoostStates;
@@ -483,11 +483,11 @@ inline void Info::EncodeMulti(const double multi, int& fid, int& did) const {
 
 
 double Info::DecodeVID(const int vid) const {
-    return V155 - vid * VIDStep;
+    return V155 - vid * CPUVIDSTEP;
 }
 
 int Info::EncodeVID(double vid) const {
-  assert(VIDStep > 0);
+  assert(CPUVIDSTEP > 0);
   assert(vid > 0.0);
   assert(vid < V155);
   //^ wanna catch the mistake rather than just round to the limits
@@ -500,10 +500,10 @@ int Info::EncodeVID(double vid) const {
 //    assert(vid<=1.0875); //that's highest (pstate0) stable voltage for my CPU, multi:22x; but initially it's 1.325V at 8x pstate0, before the downclocking!
     assert(vid<=1.325);//when not underclocked, this is tops
     // round to nearest step
-    int r = (int)(vid / VIDStep + 0.5);
+    int r = (int)(vid / CPUVIDSTEP + 0.5);
 
     //1.55 / VIDStep = highest VID (0 V)
-    int res= (int)(V155 / VIDStep) - r;//VIDStep is 0.0125; so, 124 - 87(for 1.0875 aka 22x multi) = 37
+    int res= (int)(V155 / CPUVIDSTEP) - r;//VIDStep is 0.0125; so, 124 - 87(for 1.0875 aka 22x multi) = 37
     assert(res>=18);//multi 23x, fid 30, did 2, vid 18, pstate0 (highest) normal clocked
     assert(res<=67);//multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
     return res;
