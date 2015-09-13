@@ -27,9 +27,22 @@ struct PStateInfo {
 #define CPUMODEL 0x1
 #define CPUMINMULTI 1.0
 #define CPUMAXMULTI 40.0 //24+16
-//#define CPUMINVID 
-//#define CPUMAXVID 
 #define CPUVIDSTEP 0.0125 //fixed; default step for pre SVI2 platforms
+
+#define CPUMINVID 88 //1.55 - 88*0.0125 = 0.450
+#define CPUMINVOLTAGE 0.4500
+
+#define CPUMAXVID 18 //1.55 - 18*0.0125 = 1.325; multi 23x, fid 30, did 2, vid 18, pstate0 (highest) normal clocked
+#define CPUMAXVOLTAGE 1.3250 //multi 23x, fid 30, did 2, vid 18, pstate0 (highest) normal clocked
+
+#define CPUMAXVIDunderclocked 37 //1.0875V fid:6 did:0 multi:22.00 vid:37
+#define CPUMAXVOLTAGEunderclocked 1.0875 //1.55 - 37*0.0125 = 1.0875; fid:6 did:0 multi:22.00 vid:37
+
+#define CPUMINMULTIunderclocked 8 //multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
+#define CPUMAXMULTIunderclocked 22 //1.0875V fid:6 did:0 multi:22.00 vid:37
+
+#define CPUMINVIDunderclocked 67 //multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
+#define CPUMINVOLTAGEunderclocked 0.7125 //1.55 - 67*0.0125 = .7125
 
 class Info {
 public:
@@ -42,7 +55,7 @@ public:
 
 //    double MinMulti, MaxMulti; // internal ones for 100 MHz reference
 //    double MaxSoftwareMulti; // for software (i.e., non-boost) P-states
-    double MinVID, MaxVID;
+//    double MinVID, MaxVID;
 //    double VIDStep;
 //    double multiScaleFactor;
 
@@ -52,7 +65,7 @@ public:
 //    int NumBoostStates;
 
 
-    Info() :
+    Info() //:
 //        : Family(0x12) //my CPU
 //        , Model(0x1)
 //        , NumCores(4)
@@ -61,8 +74,8 @@ public:
 //        MinMulti(1.0),
 //        MaxMulti(40.0)//24+16
 //        , MaxSoftwareMulti(0.0)
-         MinVID(DecodeVID(88))
-        , MaxVID(DecodeVID(18))//not an error, it's less! that is: 124-18=106
+//         MinVID(DecodeVID(88))
+//        , MaxVID(DecodeVID(18))//not an error, it's less! that is: 124-18=106
 //        , VIDStep(0.0125) //default step for pre SVI2 platforms
 //        , multiScaleFactor(1.0) //default for 100MHz REFCLK
 //        , IsBoostSupported(false)

@@ -217,7 +217,9 @@ PStateInfo Info::ReadPState(int index) const {
     else*/
         result.VID = GetBits(msr, 9, 7);
 
-    fprintf(stdout,"!! ReadPState index:%d fid:%d did:%d multi:%02.2f vid:%d\n", result.Index, fid, did, result.Multi, result.VID);
+    fprintf(stdout,"!! ReadPState index:%d fid:%d did:%d multi:%02.2f vid:%d\n", 
+//        DecodeVID(88), DecodeVID(18),
+        result.Index, fid, did, result.Multi, result.VID);
 /*    if (!(Family == 0x12 || Family == 0x14)) {
         const int nbDid = GetBits(msr, 22, 1);
         result.NBPState = nbDid;
@@ -245,8 +247,8 @@ bool Info::WritePState(const PStateInfo& info) const {
   const int VID = GetBits(msr, 9, 7);
   fprintf(stdout,"!! Write PState(1of3) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
 
-  assert(info.Multi >= 8);
-  assert(info.Multi <= 22);
+  assert(info.Multi >= CPUMINMULTIunderclocked);
+  assert(info.Multi <= CPUMAXMULTIunderclocked);
  // assert(0x12 == Family);
 
   int fid, did;
@@ -267,8 +269,8 @@ bool Info::WritePState(const PStateInfo& info) const {
        SetBits(msr, did, 6, 3);
        }*/
 
-    assert(info.VID>=37);
-    assert(info.VID<=67);
+    assert(info.VID >= CPUMAXVIDunderclocked);
+    assert(info.VID <= CPUMINVIDunderclocked);
     //    if (info.VID >= 0) {
     //        fprintf(stdout," vid:%d", info.VID);
     /*        //on SVI2 platforms, VID is 8 bits
@@ -496,16 +498,16 @@ int Info::EncodeVID(double vid) const {
     vid = max(0.0, min(V1325, vid));//done: use a less than 1.55 max voltage there, depending on reported one which is 1.325V for my cpu eg. 1.45 shouldn't be allowed!; OK, maybe that 1.55 is something else... in which case ignore all this.
 
     assert(vid<=V1325);
-    assert(vid>=0.7125); //that's the lowest (pstate7) stable voltage for my CPU, multi:8x
+    assert(vid >= CPUMINVOLTAGEunderclocked); //that's the lowest (pstate7) stable voltage for my CPU, multi:8x
 //    assert(vid<=1.0875); //that's highest (pstate0) stable voltage for my CPU, multi:22x; but initially it's 1.325V at 8x pstate0, before the downclocking!
-    assert(vid<=1.325);//when not underclocked, this is tops
+    assert(vid <= CPUMAXVOLTAGE);//when not underclocked, this is tops
     // round to nearest step
     int r = (int)(vid / CPUVIDSTEP + 0.5);
 
     //1.55 / VIDStep = highest VID (0 V)
     int res= (int)(V155 / CPUVIDSTEP) - r;//VIDStep is 0.0125; so, 124 - 87(for 1.0875 aka 22x multi) = 37
-    assert(res>=18);//multi 23x, fid 30, did 2, vid 18, pstate0 (highest) normal clocked
-    assert(res<=67);//multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
+    assert(res >= CPUMAXVID);//multi 23x, fid 30, did 2, vid 18, pstate0 (highest) normal clocked
+    assert(res <= CPUMINVIDunderclocked);//multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
     return res;
 }
 

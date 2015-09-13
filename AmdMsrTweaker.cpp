@@ -49,7 +49,7 @@ int main(int argc, const char* argv[]) {
     cout << "  AMD family 0x" << std::hex << 0x12 << std::dec << " (" << 18 << " dec)" << std::hex << ", model 0x1" << std::dec << " CPU, " << 4 << " cores" << endl;
     cout << "  Default reference clock: " << /*info.multiScaleFactor * */ 100 << " MHz" << endl;
 //    cout << "  Available multipliers: " << (info.MinMulti /*/ info.multiScaleFactor*/) << " .. " << (info.MaxMulti /* / info.multiScaleFactor*/) << endl;
-    cout << "  Available voltage IDs: " << info.MinVID << " .. " << info.MaxVID << " (" << CPUVIDSTEP << " steps)" << endl;
+//    cout << "  Available voltage IDs: " << info.MinVID << " .. " << info.MaxVID << " (" << CPUVIDSTEP << " steps)" << endl;
     cout << endl;
 
         if ((argc > 1)and(0 == strncmp("I wanna brick my system!", argv[1],25))) {//we make sure, because we're about to apply preset voltages!(hardcoded in source code)
