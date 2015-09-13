@@ -12,7 +12,6 @@
 #include <unistd.h>
 
 #include "WinRing0.h"
-#include "StringUtils.h"
 
 #include <inttypes.h>
 
