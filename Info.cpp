@@ -30,7 +30,33 @@ static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 1
 
 void FindFraction(double value, const double* divisors,
                   int& numerator, int& divisorIndex,
-                  int minNumerator, int maxNumerator);
+                  const int minNumerator, const int maxNumerator) {
+    // limitations: non-negative value and divisors
+
+    // count the null-terminated and ascendingly ordered divisors
+    int numDivisors = 0;
+    for (; divisors[numDivisors] > 0; numDivisors++) { }
+
+    // make sure the value is in a valid range
+    value = max(minNumerator / divisors[numDivisors-1], min(maxNumerator / divisors[0], value));
+
+    // search the best-matching combo
+    double bestValue = -1.0; // numerator / divisors[divisorIndex]
+    for (int i = 0; i < numDivisors; i++) {
+        const double d = divisors[i];
+        const int n = max(minNumerator, min(maxNumerator, (int)(value * d)));
+        const double myValue = n / d;
+
+        if (myValue <= value && myValue > bestValue) {
+            numerator = n;
+            divisorIndex = i;
+            bestValue = myValue;
+
+            if (bestValue == value)
+                break;
+        }
+    }
+}
 
 
 /*bool Info::Initialize() {
@@ -386,7 +412,7 @@ void Info::SetCurrentPState(int index) const {
 
 
 
-double Info::DecodeMulti(int fid, int did) const {
+inline double Info::DecodeMulti(const int fid, const int did) const {
 /*    if (Family == 0x14) {
         // fid => DID MSD (integral part of divisor - 1)
         // did => DID LSD (fractional part of divisor, in quarters)
@@ -406,7 +432,7 @@ double Info::DecodeMulti(int fid, int did) const {
     return (fid + 16) / DIVISORS_12[did];
 }
 
-void Info::EncodeMulti(double multi, int& fid, int& did) const {
+inline void Info::EncodeMulti(const double multi, int& fid, int& did) const {
 /*    if (Family == 0x14) {
         if (MaxMulti == 0)
             throw ExceptionWithMessage("cannot encode multiplier (family 0x14) - unknown max multiplier");
@@ -456,7 +482,7 @@ void Info::EncodeMulti(double multi, int& fid, int& did) const {
 }
 
 
-double Info::DecodeVID(int vid) const {
+double Info::DecodeVID(const int vid) const {
     return V155 - vid * VIDStep;
 }
 
@@ -469,41 +495,19 @@ int Info::EncodeVID(double vid) const {
   //XXX: here, just making sure input vid doesn't exceed 1.325V ! (my CPU)
     vid = max(0.0, min(V1325, vid));//done: use a less than 1.55 max voltage there, depending on reported one which is 1.325V for my cpu eg. 1.45 shouldn't be allowed!; OK, maybe that 1.55 is something else... in which case ignore all this.
 
+    assert(vid<=V1325);
+    assert(vid>=0.7125); //that's the lowest (pstate7) stable voltage for my CPU, multi:8x
+//    assert(vid<=1.0875); //that's highest (pstate0) stable voltage for my CPU, multi:22x; but initially it's 1.325V at 8x pstate0, before the downclocking!
+    assert(vid<=1.325);//when not underclocked, this is tops
     // round to nearest step
     int r = (int)(vid / VIDStep + 0.5);
 
     //1.55 / VIDStep = highest VID (0 V)
-    return (int)(V155 / VIDStep) - r;//VIDStep is 0.0125; so, 124 - 87(for 1.0875 aka 22x multi) = 37
+    int res= (int)(V155 / VIDStep) - r;//VIDStep is 0.0125; so, 124 - 87(for 1.0875 aka 22x multi) = 37
+    assert(res>=18);//multi 23x, fid 30, did 2, vid 18, pstate0 (highest) normal clocked
+    assert(res<=67);//multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
+    return res;
 }
 
 
 
-void FindFraction(double value, const double* divisors,
-                  int& numerator, int& divisorIndex,
-                  int minNumerator, int maxNumerator) {
-    // limitations: non-negative value and divisors
-
-    // count the null-terminated and ascendingly ordered divisors
-    int numDivisors = 0;
-    for (; divisors[numDivisors] > 0; numDivisors++) { }
-
-    // make sure the value is in a valid range
-    value = max(minNumerator / divisors[numDivisors-1], min(maxNumerator / divisors[0], value));
-
-    // search the best-matching combo
-    double bestValue = -1.0; // numerator / divisors[divisorIndex]
-    for (int i = 0; i < numDivisors; i++) {
-        const double d = divisors[i];
-        const int n = max(minNumerator, min(maxNumerator, (int)(value * d)));
-        const double myValue = n / d;
-
-        if (myValue <= value && myValue > bestValue) {
-            numerator = n;
-            divisorIndex = i;
-            bestValue = myValue;
-
-            if (bestValue == value)
-                break;
-        }
-    }
-}

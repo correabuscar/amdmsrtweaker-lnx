@@ -77,12 +77,12 @@ public:
     int GetCurrentPState() const;
     void SetCurrentPState(int index) const;
 
-    double DecodeVID(int vid) const;
-    int EncodeVID(double vid) const;
+    double DecodeVID(const int vid) const;//won't work as inline due to being used in constructor setting fields above; ok, that's not it, it's because it's being used in another .cpp file apparently!
+    int EncodeVID(double vid) const;//can't inline due to being used in another .cpp file 
 
 private:
 
-    double DecodeMulti(int fid, int did) const;
-    void EncodeMulti(double multi, int& fid, int& did) const;
+    inline double DecodeMulti(const int fid, const int did) const;
+    inline void EncodeMulti(double multi, int& fid, int& did) const;
 
 };
