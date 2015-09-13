@@ -65,7 +65,7 @@ public:
 //    bool Initialize();
 
     PStateInfo ReadPState(int index) const;
-    void WritePState(const PStateInfo& info) const;
+    bool WritePState(const PStateInfo& info) const;
 
 //    NBPStateInfo ReadNBPState(int index) const;
 //    void WriteNBPState(const NBPStateInfo& info) const;

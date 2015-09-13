@@ -229,11 +229,15 @@ void Worker::ApplyChanges() {
 //        info.SetAPM(_apm == 1);
 
     //pstates stuff:
+    bool modded=false;
     for (size_t i = 0; i < _pStates.size(); i++) {
 //        const PStateInfo& psi = _pStates[i];
 //        if (ContainsChanges(psi))
-            info.WritePState(_pStates[i]);
+      modded=info.WritePState(_pStates[i]) | modded;
     }
+
+    if (modded) {
+      fprintf(stdout, "Switching to another p-state temporarily so to ensure current one uses newly applied values\n");
 
 //    if (_turbo >= 0 && info.IsBoostSupported)
 //        info.SetCPBDis(_turbo == 1);
@@ -256,4 +260,5 @@ void Worker::ApplyChanges() {
             info.SetCurrentPState(currentPState);
 //        }
 //    }
+    }
 }

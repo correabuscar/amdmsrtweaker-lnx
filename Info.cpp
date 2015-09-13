@@ -206,7 +206,7 @@ PStateInfo Info::ReadPState(int index) const {
     return result;
 }
 
-void Info::WritePState(const PStateInfo& info) const {
+bool Info::WritePState(const PStateInfo& info) const {
   const uint32_t regIndex = 0xc0010064 + info.Index;
   uint64_t msr = Rdmsr(regIndex);
 
@@ -269,8 +269,10 @@ void Info::WritePState(const PStateInfo& info) const {
     //    fprintf(stdout, "\n");
     Wrmsr(regIndex, msr);
     fprintf(stdout,"!! Write PState(3of3) write: done.\n");
+    return true;
   } else {
     fprintf(stdout,"!! Write PState(2of3 3of3) no write needed: same values. Done.\n");
+    return false;
   }
 }
 
