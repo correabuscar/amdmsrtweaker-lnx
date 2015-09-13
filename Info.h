@@ -9,9 +9,9 @@
 
 
 struct PStateInfo {
-    int Index;    // hardware index
-    double Multi; // internal one for 100 MHz reference
-    int VID;
+  int Index;    // hardware index
+  double Multi; // internal one for 100 MHz reference
+  int VID;
 };
 
 #define DEFAULTREFERENCECLOCK 100 //MHz
@@ -40,7 +40,7 @@ struct PStateInfo {
 #define CPUMINVOLTAGEunderclocked 0.7125 //1.55 - 67*0.0125 = .7125
 
 class Info {
-public:
+  public:
 
     Info() {}
 
@@ -53,7 +53,7 @@ public:
     double DecodeVID(const int vid) const;//won't work as inline due to being used in constructor setting fields above; ok, that's not it, it's because it's being used in another .cpp file apparently!
     int EncodeVID(double vid) const;//can't inline due to being used in another .cpp file 
 
-private:
+  private:
 
     inline double DecodeMulti(const int fid, const int did) const;
     inline void EncodeMulti(double multi, int& fid, int& did) const;
