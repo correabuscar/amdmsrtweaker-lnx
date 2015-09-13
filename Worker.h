@@ -12,10 +12,10 @@
 
 
 class Worker {
-public:
+  public:
 
     Worker(const Info& info)
-        : _info(&info)
+      : _info(&info)
     { }
 
     void ParseParams();
@@ -23,7 +23,7 @@ public:
     void ApplyChanges();
 
 
-private:
+  private:
 
     const Info* _info;
     std::vector<PStateInfo> _pStates;
