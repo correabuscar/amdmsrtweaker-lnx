@@ -68,7 +68,8 @@ void PrintInfo(const Info& info) {
   for (int i = 0; i < NUMPSTATES; i++) {
     const PStateInfo pi = info.ReadPState(i);
 
-    cout << "  P" << i << ": " << (pi.Multi /* / info.multiScaleFactor*/ ) << "x at " << info.DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;
+    cout << "  P" << i << ": " << pi.Multi << "x at " << info.DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;
 
   }
 }
+
