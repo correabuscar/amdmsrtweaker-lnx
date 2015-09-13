@@ -22,6 +22,40 @@
 
 using std::exception;
 using std::string;
+
+//thanks to: https://stackoverflow.com/questions/5459868/c-preprocessor-concatenate-int-to-string?answertab=active#tab-top
+#define STR_HELPER(x) #x
+
+#define termESC "\033"
+#define termESC_openparen termESC "["
+#define termCOLOR(type, color) \
+  termESC_openparen STR_HELPER(type) ";5;" STR_HELPER(color) "m"
+#define fgCOLOR 38
+#define bgCOLOR 48
+
+#define termCOLORfg(color) \
+  termCOLOR(fgCOLOR, color)
+
+#define termCOLORbg(color) \
+  termCOLOR(bgCOLOR, color)
+
+#define termCOLORreset \
+  termESC_openparen "m" termESC "(B"
+
+#define startREDcolortext \
+    termCOLORfg(1)
+#define endcolor \
+    termCOLORreset
+
+#define startYELLOWcolortext \
+    termCOLORfg(3)
+
+#define ERRORtext(txt) \
+    startREDcolortext txt endcolor
+
+#define pERR(txt) \
+  perror(ERRORtext(txt))
+
 /*
 uint32_t ReadPciConfig(uint32_t device, uint32_t function, uint32_t regAddress) {
     uint32_t result;
@@ -72,25 +106,25 @@ uint64_t Rdmsr(uint32_t index) {
     for (int i = 0; i < get_num_cpu(); i++) {
       int ret=sprintf(path, "/dev/cpu/%d/msr", i);
       if (ret<0) {
-        perror("snprintf failed");
+        pERR("snprintf failed");
         fprintf(stderr,"!! snprintf ret=%d\n",ret);
         exit(-1);
       }
 
-      fprintf(stdout,"  !! Rdmsr: %s idx:%x ... %lu bytes ... ", path, index, sizeof(result[i]));
+      fprintf(stdout, startYELLOWcolortext "  !! Rdmsr: %s idx:%x ... %lu bytes ... ", path, index, sizeof(result[i]));
       int msr = open(path, O_RDONLY);
       if (msr == -1) {
-        perror("Failed to open msr device for reading. You need: # modprobe msr");
+        pERR("Failed to open msr device for reading. You need: # modprobe msr");
         exit(-1);
       }
       if (sizeof(result[i]) != pread(msr, &(result[i]), sizeof(result[i]), index)) {//read 8 bytes
-        perror("Failed to read from msr device");
+        pERR("Failed to read from msr device");
       }
       close(msr);
-      fprintf(stdout," done. (result==%"PRIu64")\n", result[i]);
+      fprintf(stdout," done. (result==%"PRIu64")" endcolor "\n", result[i]);
       if (i>0) {
         if (result[i-1] != result[i]) {
-          perror("Rdmsr: different results for cores");
+          pERR("Rdmsr: different results for cores");
           fprintf(stderr,"!! core[%d]==%"PRIu64" != core[%d]==%"PRIu64"\n", i-1, result[i-1], i, result[i]);
         }
       }
@@ -99,28 +133,27 @@ uint64_t Rdmsr(uint32_t index) {
     return result[0];
 }
 
-
 void Wrmsr(uint32_t index, const uint64_t& value) {
     char path[255]= "\0";
 
     for (int i = 0; i < get_num_cpu(); i++) {
         int ret=sprintf(path, "/dev/cpu/%d/msr", i);
         if (ret<0) {
-          perror("snprintf failed");
+          pERR("snprintf failed");
           exit(-1);
         }
         //fprintf(stdout,"!! Wrmsr: %s idx:%"PRIu32" val:%"PRIu64"\n", path, index, value);
-        fprintf(stdout,"  !! Wrmsr: %s idx:%x val:%"PRIu64" ... ", path, index, value);
+        fprintf(stdout, startREDcolortext "  !! Wrmsr: %s idx:%x val:%"PRIu64" ... ", path, index, value);
         int msr = open(path, O_WRONLY);
         if (msr == -1) {
-            perror("Failed to open msr device for writing");
+            pERR("Failed to open msr device for writing");
             exit(-1);
         }
         if(pwrite(msr, &value, sizeof(value), index) != sizeof(value)) {
-            perror("Failed to write to msr device");
+            pERR("Failed to write to msr device");
         }
         close(msr);
-        fprintf(stdout," done.\n");
+        fprintf(stdout," done." endcolor "\n");
     }
 }
 
