@@ -46,7 +46,7 @@ $sudo modprobe msr
 #on my Lenovo Z575
 #don't use this anywhere else, or it will corrupt your system, obviously!
 #"${scriptdir}/amdmsrt" P0=22@1.0875 P1=20@1.0250 P2=18@0.9625 P3=17@0.9375 P4=16@0.9 P5=14@0.8625 P6=12@0.8125 P7=8@0.7125
-$sudo "${scriptdir}/amdmsrt" 'I wanna brick my system!'
+$sudo "${scriptdir}/amdmsrt4myZ575" 'I wanna brick my system!'
 #"${scriptdir}/amdmsrt"
 #echo now is:
 #"${scriptdir}/amdmsrt"
