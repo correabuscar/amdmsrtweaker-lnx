@@ -240,39 +240,38 @@ void Info::WritePState(const PStateInfo& info) const {
        SetBits(msr, fid, 0, 6);
        SetBits(msr, did, 6, 3);
        }*/
+
+    assert(info.VID>=37);
+    assert(info.VID<=67);
+    //    if (info.VID >= 0) {
+    //        fprintf(stdout," vid:%d", info.VID);
+    /*        //on SVI2 platforms, VID is 8 bits
+              if (Family == 0x15 && ((Model > 0xF && Model < 0x20) || (Model > 0x2F && Model < 0x40)))
+              SetBits(msr, info.VID, 9, 8);
+              else*/
+    SetBits(msr, info.VID, 9, 7);
     //    }
 
-  assert(info.VID>=37);
-  assert(info.VID<=67);
-  //    if (info.VID >= 0) {
-  //        fprintf(stdout," vid:%d", info.VID);
-  /*        //on SVI2 platforms, VID is 8 bits
-            if (Family == 0x15 && ((Model > 0xF && Model < 0x20) || (Model > 0x2F && Model < 0x40)))
-            SetBits(msr, info.VID, 9, 8);
-            else*/
-  SetBits(msr, info.VID, 9, 7);
-  //    }
+    /*    if (info.NBPState >= 0) {
+          if (!(Family == 0x12 || Family == 0x14)) {
+          const int nbDid = max(0, min(1, info.NBPState));
+          SetBits(msr, nbDid, 22, 1);
+          }
+          }
 
-  /*    if (info.NBPState >= 0) {
-        if (!(Family == 0x12 || Family == 0x14)) {
-        const int nbDid = max(0, min(1, info.NBPState));
-        SetBits(msr, nbDid, 22, 1);
-        }
-        }
+          if (info.NBVID >= 0) {
+          if (Family == 0x10) {
+          SetBits(msr, info.NBVID, 25, 7);
+          }
+          }*/
 
-        if (info.NBVID >= 0) {
-        if (Family == 0x10) {
-        SetBits(msr, info.NBVID, 25, 7);
-        }
-        }*/
-
-  fprintf(stdout,"!! Write PState(2of3) write:%d did:%d vid:%d (multi:%02.2f) ...\n", fid, did, info.VID, info.Multi);
-  //    fprintf(stdout, "\n");
-  Wrmsr(regIndex, msr);
-  fprintf(stdout,"!! Write PState(3of3) write: done.\n");
-} else {
-  fprintf(stdout,"!! Write PState(2of3 3of3) no write needed: same values. Done.\n");
-}
+    fprintf(stdout,"!! Write PState(2of3) write:%d did:%d vid:%d (multi:%02.2f) ...\n", fid, did, info.VID, info.Multi);
+    //    fprintf(stdout, "\n");
+    Wrmsr(regIndex, msr);
+    fprintf(stdout,"!! Write PState(3of3) write: done.\n");
+  } else {
+    fprintf(stdout,"!! Write PState(2of3 3of3) no write needed: same values. Done.\n");
+  }
 }
 
 
