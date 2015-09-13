@@ -271,7 +271,7 @@ void Info::WritePState(const PStateInfo& info) const {
     Wrmsr(regIndex, msr);
     fprintf(stdout,"!! Write PState(3of3) write: done.\n");
     } else {
-      fprintf(stdout,"!! Write PState(2of3 3of3) not write needed: same values. Done.\n");
+      fprintf(stdout,"!! Write PState(2of3 3of3) no write needed: same values. Done.\n");
     }
 }
 

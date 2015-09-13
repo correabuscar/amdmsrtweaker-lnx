@@ -83,7 +83,7 @@ uint64_t Rdmsr(uint32_t index) {
         perror("Failed to open msr device for reading. You need: # modprobe msr");
         exit(-1);
       }
-      if (sizeof(result[i]) != pread(msr, &(result[i]), sizeof(result[i]), index)) {
+      if (sizeof(result[i]) != pread(msr, &(result[i]), sizeof(result[i]), index)) {//read 8 bytes
         perror("Failed to read from msr device");
       }
       close(msr);
