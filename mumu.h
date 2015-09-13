@@ -3,9 +3,10 @@
 #include <inttypes.h> //for uint32_t uint64_t
 
 struct PStateInfo {
-  int Index;    // hardware index
-  double Multi; // internal one for 100 MHz reference
-  int VID;
+    int index; // hardware index  eg. pstate 0 aka P0 (range: P0..P7)
+    double multi; //multiplier ( multiply with the reference clock of 100Mhz eg. multi*REFERENCECLOCK)
+    double strvid; //real life voltage eg. 1.325V as a double
+    int VID; //vid, eg. 18 (for 1.325V) or 67 (for 1.0875V)
 };
 
 // special divisors for family 0x12 (aka 18 in decimal)
@@ -39,6 +40,28 @@ static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 1
 
 #define CPUMINVIDunderclocked 67 //multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
 #define CPUMINVOLTAGEunderclocked 0.7125 //1.55 - 67*0.0125 = .7125
+
+const PStateInfo  __attribute__((unused)) bootdefaults_psi[NUMPSTATES]={//XXX: fyi only, do not use this!
+  {0, 23.0, 1.325, 18}, //P0, boost
+  {1, 14.0, 1.0625, 39}, //P1, normal
+  {2, 13.0, 1.025, 42},
+  {3, 12.0, 0.9875, 45},
+  {4, 11.0, 0.975, 46},
+  {5, 10.0, 0.9625, 47},
+  {6, 9.0, 0.95, 48},
+  {7, 8.0, 0.925, 50} //P7, normal
+};
+//bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
+const PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
+  {0, 22.0, 1.0875, 37}, //P0, boost
+  {1, 20.0, 1.0250, 42}, //P1, normal
+  {2, 18.0, 0.9625, 47},
+  {3, 17.0, 0.9375, 49},
+  {4, 16.0, 0.9, 52},
+  {5, 14.0, 0.8625, 55},
+  {6, 12.0, 0.8125, 59},
+  {7, 8.0, 0.7125, 67} //P7, normal
+};
 
 template <typename T> uint32_t GetBits(T value, unsigned char offset, unsigned char numBits) {
     const T mask = (((T)1 << numBits) - (T)1); // 2^numBits - 1; after right-shift

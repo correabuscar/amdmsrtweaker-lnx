@@ -13,7 +13,7 @@ fi
 
 $sudo modprobe msr
 #$sudo modprobe cpuid
-$sudo ./amdmsrt
+$sudo ./amdmsrt4myZ575
 $sudo rmmod msr
 #$sudo rmmod cpuid
 
