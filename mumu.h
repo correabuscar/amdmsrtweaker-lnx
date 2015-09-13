@@ -1,10 +1,3 @@
-/*
- * Copyright (c) Martin Kinkelin
- *
- * See the "License.txt" file in the root directory for infos
- * about permitted and prohibited uses of this code.
- */
-
 #pragma once
 
 
@@ -13,6 +6,13 @@ struct PStateInfo {
   double Multi; // internal one for 100 MHz reference
   int VID;
 };
+
+// special divisors for family 0x12 (aka 18 in decimal)
+static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 0.0 };
+
+//top voltage, fixed value used for calculating VIDs and stuff, do not change!!!
+#define V155 1.55
+#define V1325 1.325 //my original turbo state voltage!
 
 #define DEFAULTREFERENCECLOCK 100 //MHz
 #define REFERENCECLOCK DEFAULTREFERENCECLOCK //for my CPU, is the same 100MHz (unused)
@@ -38,25 +38,4 @@ struct PStateInfo {
 
 #define CPUMINVIDunderclocked 67 //multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
 #define CPUMINVOLTAGEunderclocked 0.7125 //1.55 - 67*0.0125 = .7125
-
-class Info {
-  public:
-
-    Info() {}
-
-    PStateInfo ReadPState(int index) const;
-    bool WritePState(const PStateInfo& info) const;
-
-    int GetCurrentPState() const;
-    void SetCurrentPState(int index) const;
-
-    double DecodeVID(const int vid) const;//won't work as inline due to being used in constructor setting fields above; ok, that's not it, it's because it's being used in another .cpp file apparently!
-    int EncodeVID(double vid) const;//can't inline due to being used in another .cpp file 
-
-  private:
-
-    inline double DecodeMulti(const int fid, const int did) const;
-    inline void EncodeMulti(double multi, int& fid, int& did) const;
-
-};
 

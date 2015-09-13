@@ -7,9 +7,12 @@
 
 #include <cstdio>
 #include <iostream>
-#include "Info.h"
-#include "Worker.h"
+#include "mumu.h"
 #include "WinRing0.h"
+
+#include <unistd.h> //for sleep(sec)
+
+#include <vector>
 
 #include <string.h>
 
@@ -20,7 +23,9 @@ using std::cerr;
 using std::endl;
 
 
-void PrintInfo(const Info& info);
+void PrintInfo();//forward declaration
+void ParseParams();
+void ApplyChanges();
 
 /*const int count=1+8;
   const char* params[count]={
@@ -41,19 +46,16 @@ int main(int argc, const char* argv[]) {
   cout << "AmdMsrTweaker v1.1 modified for my own Lenovo Z575 ONLY!!! (voltages are fixed, params ignored!)" << endl;
   cout << "argv[0] is: " << argv[0] << endl;
   try {
-    Info info;
     if ((argc > 1)and(0 == strncmp("I wanna brick my system!", argv[1],25))) {//we make sure, because we're about to apply preset voltages!(hardcoded in source code)
-      Worker worker(info);
-
-      worker.ParseParams();
+      ParseParams();
 
       fprintf(stdout,"Before:\n");
-      PrintInfo(info);
-      worker.ApplyChanges();
+      PrintInfo();
+      ApplyChanges();
       fprintf(stdout,"After:\n");
-      PrintInfo(info);
+      PrintInfo();
     } else {
-      PrintInfo(info);
+      PrintInfo();
     }
   } catch (const std::exception& e) {
     cerr << "ERROR: " << e.what() << endl;
@@ -64,12 +66,244 @@ int main(int argc, const char* argv[]) {
 }
 
 
-void PrintInfo(const Info& info) {
-  for (int i = 0; i < NUMPSTATES; i++) {
-    const PStateInfo pi = info.ReadPState(i);
 
-    cout << "  P" << i << ": " << pi.Multi << "x at " << info.DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;
+void FindFraction(double value, const double* divisors,
+    int& numerator, int& divisorIndex,
+    const int minNumerator, const int maxNumerator) {
+  // limitations: non-negative value and divisors
 
+  // count the null-terminated and ascendingly ordered divisors
+  int numDivisors = 0;
+  for (; divisors[numDivisors] > 0; numDivisors++) { }
+
+  // make sure the value is in a valid range
+  value = std::max(minNumerator / divisors[numDivisors-1], std::min(maxNumerator / divisors[0], value));
+
+  // search the best-matching combo
+  double bestValue = -1.0; // numerator / divisors[divisorIndex]
+  for (int i = 0; i < numDivisors; i++) {
+    const double d = divisors[i];
+    const int n = std::max(minNumerator, std::min(maxNumerator, (int)(value * d)));
+    const double myValue = n / d;
+
+    if (myValue <= value && myValue > bestValue) {
+      numerator = n;
+      divisorIndex = i;
+      bestValue = myValue;
+
+      if (bestValue == value)
+        break;
+    }
   }
 }
 
+inline double DecodeMulti(const int fid, const int did) {
+  return (fid + 16) / DIVISORS_12[did];
+}
+
+inline void EncodeMulti(const double multi, int& fid, int& did) {
+  const int minNumerator = 16; // numerator: 0x10 = 16 as fixed offset
+  const int maxNumerator = 31 + minNumerator; // 5 bits => max 2^5-1 = 31
+
+  int numerator, divisorIndex;
+  FindFraction(multi, DIVISORS_12, numerator, divisorIndex, minNumerator, maxNumerator);
+
+  fid = numerator - minNumerator;
+  did = divisorIndex;
+}
+
+PStateInfo ReadPState(int index) {
+  const uint64_t msr = Rdmsr(0xc0010064 + index);
+
+  PStateInfo result;
+  result.Index = index;
+
+  int fid, did;
+  fid = GetBits(msr, 4, 5);
+  did = GetBits(msr, 0, 4);
+
+  result.Multi = DecodeMulti(fid, did);
+
+  result.VID = GetBits(msr, 9, 7);
+
+  fprintf(stdout,"!! ReadPState index:%d fid:%d did:%d multi:%02.2f vid:%d\n", 
+      result.Index, fid, did, result.Multi, result.VID);
+  return result;
+}
+
+bool WritePState(const PStateInfo& info) {
+  const uint32_t regIndex = 0xc0010064 + info.Index;
+  uint64_t msr = Rdmsr(regIndex);
+
+  const int fidbefore = GetBits(msr, 4, 5);
+  const int didbefore = GetBits(msr, 0, 4);
+  const double Multi = DecodeMulti(fidbefore, didbefore);
+  const int VID = GetBits(msr, 9, 7);
+  fprintf(stdout,"!! Write PState(1of3) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
+
+  assert(info.Multi >= CPUMINMULTIunderclocked);
+  assert(info.Multi <= CPUMAXMULTIunderclocked);
+
+  int fid, did;
+  EncodeMulti(info.Multi, fid, did);
+  if ((fid != fidbefore) || (did != didbefore)) {
+    SetBits(msr, fid, 4, 5);
+    SetBits(msr, did, 0, 4);
+
+    assert(info.VID >= CPUMAXVIDunderclocked);
+    assert(info.VID <= CPUMINVIDunderclocked);
+    SetBits(msr, info.VID, 9, 7);
+
+    fprintf(stdout,"!! Write PState(2of3) write:%d did:%d vid:%d (multi:%02.2f) ...\n", fid, did, info.VID, info.Multi);
+    Wrmsr(regIndex, msr);
+    fprintf(stdout,"!! Write PState(3of3) write: done.\n");
+    return true;
+  } else {
+    fprintf(stdout,"!! Write PState(2of3 3of3) no write needed: same values. Done.\n");
+    return false;
+  }
+}
+
+
+int GetCurrentPState() {
+  const uint64_t msr = Rdmsr(0xc0010071);
+  const int i = GetBits(msr, 16, 3);//0..7
+  return i;
+}
+
+void SetCurrentPState(int index) {
+  if (index < 0 || index >= NUMPSTATES)
+    throw ExceptionWithMessage("P-state index out of range");
+
+  index -= 1;//NumBoostStates;
+  if (index < 0)
+    index = 0;
+
+  const uint32_t regIndex = 0xc0010062;
+  uint64_t msr = Rdmsr(regIndex);
+  SetBits(msr, index, 0, 3);
+  Wrmsr(regIndex, msr);
+}
+
+
+
+
+
+double DecodeVID(const int vid) {
+  return V155 - vid * CPUVIDSTEP;
+}
+
+int EncodeVID(double vid) {
+  assert(CPUVIDSTEP > 0);
+  assert(vid > 0.0);
+  assert(vid < V155);
+  //^ wanna catch the mistake rather than just round to the limits
+
+  //XXX: here, just making sure input vid doesn't exceed 1.325V ! (my CPU)
+  vid = std::max(0.0, std::min(V1325, vid));//done: use a less than 1.55 max voltage there, depending on reported one which is 1.325V for my cpu eg. 1.45 shouldn't be allowed!; OK, maybe that 1.55 is something else... in which case ignore all this.
+
+  assert(vid<=V1325);
+  assert(vid >= CPUMINVOLTAGEunderclocked); //that's the lowest (pstate7) stable voltage for my CPU, multi:8x
+  //    assert(vid<=1.0875); //that's highest (pstate0) stable voltage for my CPU, multi:22x; but initially it's 1.325V at 8x pstate0, before the downclocking!
+  assert(vid <= CPUMAXVOLTAGE);//when not underclocked, this is tops
+  // round to nearest step
+  int r = (int)(vid / CPUVIDSTEP + 0.5);
+
+  //1.55 / VIDStep = highest VID (124)
+  int res= (int)(V155 / CPUVIDSTEP) - r;//VIDStep is 0.0125; so, 124 - 87(for 1.0875 aka 22x multi) = 37
+  assert(res >= CPUMAXVID);//multi 23x, fid 30, did 2, vid 18, pstate0 (highest) normal clocked
+  assert(res <= CPUMINVIDunderclocked);//multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
+  return res;
+}
+
+
+
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::string;
+using std::tolower;
+using std::vector;
+
+std::vector<PStateInfo> _pStates;
+
+void ParseParams() {
+  struct somestruct {
+    double multi;
+    double strvid;
+    int VID;
+  };
+  const somestruct  __attribute__((unused)) bootdefaults_psi[8]={//XXX: fyi only, do not use this!
+    {23.0, 1.325, 18}, //P0, boost
+    {14.0, 1.0625, 39}, //P1, normal
+    {13.0, 1.025, 42},
+    {12.0, 0.9875, 45},
+    {11.0, 0.975, 46},
+    {10.0, 0.9625, 47},
+    {9.0, 0.95, 48},
+    {8.0, 0.925, 50} //P7, normal
+  };
+  //bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
+
+  const somestruct allpsi[8]={//stable underclocking for my CPU:
+    {22.0, 1.0875, 37}, //P0, boost
+    {20.0, 1.0250, 42}, //P1, normal
+    {18.0, 0.9625, 47},
+    {17.0, 0.9375, 49},
+    {16.0, 0.9, 52},
+    {14.0, 0.8625, 55},
+    {12.0, 0.8125, 59},
+    {8.0, 0.7125, 67} //P7, normal
+  };
+
+  PStateInfo psi;
+  psi.Multi = psi.VID = -1; //psi.NBVID = -1;
+  fprintf(stdout,"Hardcoded values:\n");
+  for (int i = 0; i < NUMPSTATES; i++) {
+    _pStates.push_back(psi);
+    //        _pStates.back().Index = i;//very important!
+    _pStates[i].Index = i;//^ equivalent
+    _pStates[i].Multi = allpsi[i].multi;//eg. 22.0
+    _pStates[i].VID = EncodeVID(allpsi[i].strvid /*eg. 1.0875*/);//atof(vid.c_str()));
+    assert( allpsi[i].VID/*eg. 37*/ == _pStates[i].VID);
+    assert( i == _pStates[i].Index );
+    fprintf(stdout,"pstate:%d multi:%02.2f vid:%d\n",// voltage:%d\n", 
+        i, 
+        _pStates[i].Multi,
+        _pStates[i].VID
+        );
+  }
+}
+
+
+void ApplyChanges() {
+  //pstates stuff:
+  bool modded=false;
+  for (size_t i = 0; i < _pStates.size(); i++) {
+    modded=WritePState(_pStates[i]) | modded;
+  }
+
+  if (modded) {
+    fprintf(stdout, "Switching to another p-state temporarily so to ensure current one uses newly applied values\n");
+
+    const int currentPState = GetCurrentPState();
+
+    //we switch to another pstate temporarily, then back again so that it takes effect (apparently that's why, unsure, it's not my coding)
+    const int lastpstate= NUMPSTATES - 1;//aka the lowest speed one
+    const int tempPState = (currentPState == lastpstate ? 0 : lastpstate);
+    fprintf(stdout,"!! currentpstate:%d temppstate:%d\n", currentPState, tempPState);
+    SetCurrentPState(tempPState);
+    sleep(1);//1 second
+    SetCurrentPState(currentPState);
+  }
+}
+
+void PrintInfo() {
+  for (int i = 0; i < NUMPSTATES; i++) {
+    const PStateInfo pi = ReadPState(i);
+
+    cout << "  P" << i << ": " << pi.Multi << "x at " << DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;
+
+  }
+}
