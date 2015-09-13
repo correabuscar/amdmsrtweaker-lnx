@@ -22,6 +22,9 @@ struct PStateInfo {
 //    int VID;
 //};
 
+#define DEFAULTREFERENCECLOCK 100 //MHz
+#define REFERENCECLOCK DEFAULTREFERENCECLOCK //for my CPU, is the same 100MHz (unused)
+
 #define NUMPSTATES 8
 #define CPUFAMILY 0x12
 #define CPUMODEL 0x1

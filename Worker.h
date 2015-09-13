@@ -16,9 +16,9 @@ public:
 
     Worker(const Info& info)
         : _info(&info)
-        , _turbo(-1)
+//        , _turbo(-1)
 //        , _apm(-1)
-        , _pState(-1)
+//        , _pState(-1)
     { }
 
     void ParseParams();
@@ -31,7 +31,7 @@ private:
     const Info* _info;
     std::vector<PStateInfo> _pStates;
 //    std::vector<NBPStateInfo> _nbPStates;
-    int _turbo;  // enable (1)/disable (0) CPB
+//    int _turbo;  // enable (1)/disable (0) CPB
 //    int _apm;    // enable (1)/disable (0) APM
-    int _pState; // hardware index of the P-state to be activated
+//    int _pState; // hardware index of the P-state to be activated
 };

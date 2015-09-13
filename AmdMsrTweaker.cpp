@@ -39,18 +39,18 @@ const char* params[count]={
 int main(int argc, const char* argv[]) {
     cout << endl;
     cout << "AmdMsrTweaker v1.1 modified for my own Lenovo Z575 ONLY!!! (voltages are fixed, params ignored!)" << endl;
-    cout << endl;
+    cout << "argv[0] is: " << argv[0] << endl;
     try {
         Info info;
 
 
-    cout << ".:. General" << endl << "---" << endl;
+//    cout << ".:. General" << endl << "---" << endl;
 //    cout << "  AMD family 0x" << std::hex << info.Family << std::dec << " (" << info.Family << " dec)" << std::hex << ", model 0x" << info.Model << std::dec << " CPU, " << info.NumCores << " cores" << endl;
-    cout << "  AMD family 0x" << std::hex << 0x12 << std::dec << " (" << 18 << " dec)" << std::hex << ", model 0x1" << std::dec << " CPU, " << 4 << " cores" << endl;
-    cout << "  Default reference clock: " << /*info.multiScaleFactor * */ 100 << " MHz" << endl;
+//    cout << "  AMD family 0x" << std::hex << 0x12 << std::dec << " (" << 18 << " dec)" << std::hex << ", model 0x1" << std::dec << " CPU, " << 4 << " cores" << endl;
+//    cout << "  Default reference clock: " << /*info.multiScaleFactor * */ 100 << " MHz" << endl;
 //    cout << "  Available multipliers: " << (info.MinMulti /*/ info.multiScaleFactor*/) << " .. " << (info.MaxMulti /* / info.multiScaleFactor*/) << endl;
 //    cout << "  Available voltage IDs: " << info.MinVID << " .. " << info.MaxVID << " (" << CPUVIDSTEP << " steps)" << endl;
-    cout << endl;
+//    cout << endl;
 
         if ((argc > 1)and(0 == strncmp("I wanna brick my system!", argv[1],25))) {//we make sure, because we're about to apply preset voltages!(hardcoded in source code)
             Worker worker(info);
