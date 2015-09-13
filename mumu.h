@@ -1,5 +1,6 @@
 #pragma once
 
+#include <inttypes.h> //for uint32_t uint64_t
 
 struct PStateInfo {
   int Index;    // hardware index
@@ -38,4 +39,62 @@ static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 1
 
 #define CPUMINVIDunderclocked 67 //multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
 #define CPUMINVOLTAGEunderclocked 0.7125 //1.55 - 67*0.0125 = .7125
+
+template <typename T> uint32_t GetBits(T value, unsigned char offset, unsigned char numBits) {
+    const T mask = (((T)1 << numBits) - (T)1); // 2^numBits - 1; after right-shift
+    return (uint32_t)((value >> offset) & mask);
+}
+
+template <typename T> void SetBits(T& value, uint32_t bits, unsigned char offset, unsigned char numBits) {
+    const T mask = (((T)1 << numBits) - (T)1) << offset; // 2^numBits - 1, shifted by offset to the left
+    value = (value & ~mask) | (((T)bits << offset) & mask);
+}
+
+class ExceptionWithMessage: public std::exception {
+    const char* what;
+
+public:
+
+    ExceptionWithMessage(std::string msg) {
+        this->what = msg.c_str();
+    }
+};
+
+//thanks to: https://stackoverflow.com/questions/5459868/c-preprocessor-concatenate-int-to-string?answertab=active#tab-top
+#define STR_HELPER(x) #x
+
+#define termESC "\033"
+#define termESC_openparen termESC "["
+#define termCOLOR(type, color) \
+  termESC_openparen STR_HELPER(type) ";5;" STR_HELPER(color) "m"
+#define fgCOLOR 38
+#define bgCOLOR 48
+
+#define termCOLORfg(color) \
+  termCOLOR(fgCOLOR, color)
+
+#define termCOLORbg(color) \
+  termCOLOR(bgCOLOR, color)
+
+#define termCOLORreset \
+  termESC_openparen "m" termESC "(B"
+
+#define startREDcolortext \
+    termCOLORfg(1)
+
+#define startPURPLEcolortext \
+    termCOLORfg(5)
+
+#define endcolor \
+    termCOLORreset
+
+#define startYELLOWcolortext \
+    termCOLORfg(3)
+
+#define ERRORtext(txt) \
+    startREDcolortext txt endcolor
+
+#define pERR(txt) \
+  perror(ERRORtext(txt))
+
 

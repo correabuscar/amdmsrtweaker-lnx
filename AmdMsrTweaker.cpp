@@ -8,15 +8,19 @@
 #include <cstdio>
 #include <iostream>
 #include "mumu.h"
-#include "WinRing0.h"
 
 #include <unistd.h> //for sleep(sec)
+#include <stdlib.h> //for exit
 
 #include <vector>
 
 #include <string.h>
+//#include <stdint.h> //for uint32_t uint64_t
+#include <inttypes.h> //for uint32_t uint64_t
 
 #include <assert.h>
+
+#include <fcntl.h> //for O_RDONLY
 
 using std::cout;
 using std::cerr;
@@ -65,6 +69,67 @@ int main(int argc, const char* argv[]) {
   return 0;
 }
 
+int inline get_num_cpu() {
+    return 4;//assume 4 cores - my CPU
+}
+
+uint64_t Rdmsr(uint32_t index) {
+    uint64_t result[4]={0,0,0,0};
+    char path[255]= "\0";
+
+    for (int i = 0; i < get_num_cpu(); i++) {
+      int ret=sprintf(path, "/dev/cpu/%d/msr", i);
+      if (ret<0) {
+        pERR("snprintf failed");
+        fprintf(stderr,"!! snprintf ret=%d\n",ret);
+        exit(-1);
+      }
+
+      fprintf(stdout, startYELLOWcolortext "  !! Rdmsr: %s idx:%x ... %lu bytes ... ", path, index, sizeof(result[i]));
+      int msr = open(path, O_RDONLY);
+      if (msr == -1) {
+        pERR("Failed to open msr device for reading. You need: # modprobe msr");
+        exit(-1);
+      }
+      if (sizeof(result[i]) != pread(msr, &(result[i]), sizeof(result[i]), index)) {//read 8 bytes
+        pERR("Failed to read from msr device");
+      }
+      close(msr);
+      fprintf(stdout," done. (result==%"PRIu64" hex:%08x%08x)" endcolor "\n", result[i], (unsigned int)(result[i] >> 32), (unsigned int)(result[i] & 0xFFFFFFFF));
+      if (i>0) {
+        if (result[i-1] != result[i]) {
+          pERR("Rdmsr: different results for cores");
+          fprintf(stderr,"!! core[%d]==%"PRIu64" != core[%d]==%"PRIu64"\n", i-1, result[i-1], i, result[i]);
+        }
+      }
+    }
+
+    return result[0];
+}
+
+void Wrmsr(uint32_t index, const uint64_t& value) {
+    char path[255]= "\0";
+
+    for (int i = 0; i < get_num_cpu(); i++) {
+        int ret=sprintf(path, "/dev/cpu/%d/msr", i);
+        if (ret<0) {
+          pERR("snprintf failed");
+          exit(-1);
+        }
+        //fprintf(stdout,"!! Wrmsr: %s idx:%"PRIu32" val:%"PRIu64"\n", path, index, value);
+        fprintf(stdout, startPURPLEcolortext "  !! Wrmsr: %s idx:%x val:%"PRIu64" valx:%08x%08x... ", path, index, value, (unsigned int)(value >> 32), (unsigned int)(value & 0xFFFFFFFF));
+        int msr = open(path, O_WRONLY);
+        if (msr == -1) {
+            pERR("Failed to open msr device for writing");
+            exit(-1);
+        }
+        if(pwrite(msr, &value, sizeof(value), index) != sizeof(value)) {
+            pERR("Failed to write to msr device");
+        }
+        close(msr);
+        fprintf(stdout," done." endcolor "\n");
+    }
+}
 
 
 void FindFraction(double value, const double* divisors,
