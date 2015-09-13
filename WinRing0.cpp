@@ -44,6 +44,10 @@ using std::string;
 
 #define startREDcolortext \
     termCOLORfg(1)
+
+#define startPURPLEcolortext \
+    termCOLORfg(5)
+
 #define endcolor \
     termCOLORreset
 
@@ -143,7 +147,7 @@ void Wrmsr(uint32_t index, const uint64_t& value) {
           exit(-1);
         }
         //fprintf(stdout,"!! Wrmsr: %s idx:%"PRIu32" val:%"PRIu64"\n", path, index, value);
-        fprintf(stdout, startREDcolortext "  !! Wrmsr: %s idx:%x val:%"PRIu64" ... ", path, index, value);
+        fprintf(stdout, startPURPLEcolortext "  !! Wrmsr: %s idx:%x val:%"PRIu64" ... ", path, index, value);
         int msr = open(path, O_WRONLY);
         if (msr == -1) {
             pERR("Failed to open msr device for writing");
