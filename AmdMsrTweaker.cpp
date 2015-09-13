@@ -42,10 +42,6 @@ int main(int argc, const char* argv[]) {
     cout << endl;
     try {
         Info info;
-        if (!info.Initialize()) {
-            cout << "ERROR: unsupported CPU" << endl;
-            return 2;
-        }
 
 
     cout << ".:. General" << endl << "---" << endl;

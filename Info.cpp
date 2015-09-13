@@ -33,7 +33,7 @@ void FindFraction(double value, const double* divisors,
                   int minNumerator, int maxNumerator);
 
 
-bool Info::Initialize() {
+/*bool Info::Initialize() {
 //    CpuidRegs regs;
 //    uint64_t msr;
 //    uint32_t eax;
@@ -49,7 +49,7 @@ bool Info::Initialize() {
 //    Family = GetBits(regs.eax, 8, 4) + GetBits(regs.eax, 20, 8);
   //build/1packages/kernel/linuxgit/makepkg/linux-git/src/linux-git/arch/x86/kernel/cpuid.c +99
     Family = 0x12;//assume my CPU
-//    if (!(Family == 0x10 || Family == 0x12/*aka 18 decimal cat /proc/cpuinfo */ || Family == 0x14 || Family == 0x15))
+//    if (!(Family == 0x10 || Family == 0x12/aka 18 decimal cat /proc/cpuinfo / || Family == 0x14 || Family == 0x15))
 //        return false;
 
     // read model
@@ -79,10 +79,10 @@ bool Info::Initialize() {
     NumPStates = 8;//my CPU
 //    fprintf(stderr, " pstates num = %d", NumPStates);
 
-/*    if (Family == 0x15) {
+/    if (Family == 0x15) {
         eax = ReadPciConfig(AMD_CPU_DEVICE, 5, 0x170);
         NumNBPStates = (eax & 0x3) + 1;
-    }*/
+    }/
 
     // get limits
 //    msr = Rdmsr(0xc0010071);
@@ -144,7 +144,7 @@ bool Info::Initialize() {
 //        fprintf(stderr, "boostsrc: %d %d cpbDis=%d boost:%d\n", boostSrc, isBoostSrcEnabled, cpbDis, IsBoostEnabled);//1 1 0 1
 
         // max multi for software P-states (families 0x10 and 0x15)
-/*        if (Family == 0x10) {
+/        if (Family == 0x10) {
             eax = ReadPciConfig(AMD_CPU_DEVICE, 3, 0x1f0);
             const int maxSoftwareMulti = GetBits(eax, 20, 6);
             MaxSoftwareMulti = (maxSoftwareMulti == 0 ? 63
@@ -154,11 +154,11 @@ bool Info::Initialize() {
             const int maxSoftwareMulti = GetBits(eax, 0, 6);
             MaxSoftwareMulti = (maxSoftwareMulti == 0 ? 63
                                 : maxSoftwareMulti);
-        }*/
+        }/
 //    }
 
     return true;
-}
+}*/
 
 
 

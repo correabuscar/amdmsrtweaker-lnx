@@ -45,14 +45,15 @@ public:
 
 
     Info()
-        : Family(0)
-        , Model(0)
-        , NumCores(0)
-        , NumPStates(0)
+        : Family(0x12) //my CPU
+        , Model(0x1)
+        , NumCores(4)
+        , NumPStates(8)
 //        , NumNBPStates(2) //except family 0x15, we have at least 2 NB P-States
-        , MinMulti(0.0), MaxMulti(0.0)
+        , MinMulti(1.0), MaxMulti(40.0)//24+16
 //        , MaxSoftwareMulti(0.0)
-        , MinVID(0.0), MaxVID(0.0)
+        , MinVID(DecodeVID(88))
+        , MaxVID(DecodeVID(18))//not an error, it's less! that is: 124-18=106
         , VIDStep(0.0125) //default step for pre SVI2 platforms
 //        , multiScaleFactor(1.0) //default for 100MHz REFCLK
 //        , IsBoostSupported(false)
@@ -61,7 +62,7 @@ public:
 //        , NumBoostStates(0)
         {}
 
-    bool Initialize();
+//    bool Initialize();
 
     PStateInfo ReadPState(int index) const;
     void WritePState(const PStateInfo& info) const;
