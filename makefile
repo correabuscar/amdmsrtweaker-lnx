@@ -2,11 +2,11 @@ CXX = g++
 CXXFLAGS=-O2 -Wall -pedantic -ggdb -DDEBUG -pipe -fvar-tracking-assignments -fno-omit-frame-pointer -ftrack-macro-expansion=2 -fstack-protector-all -fPIC
 exe = amdmsrt4myZ575
 
-all: AmdMsrTweaker.o
-	${CXX} AmdMsrTweaker.o ${CXXFLAGS} -o ${exe}
+all: amdmsrtweaker.o
+	${CXX} amdmsrtweaker.o ${CXXFLAGS} -o ${exe}
 
-AmdMsrTweaker.o: AmdMsrTweaker.cpp mumu.h
-	${CXX} -c AmdMsrTweaker.cpp ${CXXFLAGS} -o AmdMsrTweaker.o
+amdmsrtweaker.o: amdmsrtweaker.cpp mumu.h
+	${CXX} -c amdmsrtweaker.cpp ${CXXFLAGS} -o amdmsrtweaker.o
 
 clean:
 	rm -f *.o ${exe}
