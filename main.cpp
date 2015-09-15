@@ -157,8 +157,11 @@ void FindFraction(double value, const double* divisors,
 
 inline double multifromfidndid(const int fid, const int did) {
   double ret= (fid + 16) / DIVISORS_12[did];
+  if ((ret < CPUMINMULTI) || (ret > CPUMAXMULTI)) {
+    std::cerr << startREDcolortext << "!! unexpected multiplier, you're probably running inside virtualbox fid:" << fid << " did:" << did << " multi:" << ret << endl;
+  }
   assert(ret>=CPUMINMULTI);
-  assert(ret<CPUMAXMULTI);
+  assert(ret<=CPUMAXMULTI);
   return ret;
 }
 
