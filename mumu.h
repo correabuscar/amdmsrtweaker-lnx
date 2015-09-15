@@ -3,7 +3,6 @@
 #include <inttypes.h> //for uint32_t uint64_t
 
 struct PStateInfo {
-//    int index; // hardware index  eg. pstate 0 aka P0 (range: P0..P7)
     double multi; //multiplier ( multiply with the reference clock of 100Mhz eg. multi*REFERENCECLOCK)
     double strvid; //real life voltage eg. 1.325V as a double
     int VID; //vid, eg. 18 (for 1.325V) or 67 (for 1.0875V)

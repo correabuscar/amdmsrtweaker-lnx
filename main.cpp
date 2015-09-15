@@ -9,7 +9,7 @@
 #include <iostream> //for cout
 #include "mumu.h"
 
-#include <unistd.h> //for sleep(sec)
+#include <unistd.h> //for pread, pwrite, close
 #include <stdlib.h> //for exit
 
 #include <string.h> //strncmp
@@ -79,15 +79,15 @@ uint64_t Rdmsr(const uint32_t regIndex) {
       }
 
       fprintf(stdout, startYELLOWcolortext "  !! Rdmsr: %s idx:%x ... %lu bytes ... ", path, regIndex, sizeof(result[i]));
-      int msr = open(path, O_RDONLY);
-      if (msr == -1) {
+      int msrdev = open(path, O_RDONLY);
+      if (msrdev == -1) {
         pERR("Failed to open msr device for reading. You need: # modprobe msr");
         exit(-1);
       }
-      if (sizeof(result[i]) != pread(msr, &(result[i]), sizeof(result[i]), regIndex)) {//read 8 bytes
+      if (sizeof(result[i]) != pread(msrdev, &(result[i]), sizeof(result[i]), regIndex)) {//read 8 bytes
         pERR("Failed to read from msr device");
       }
-      close(msr);
+      close(msrdev);
       fprintf(stdout," done. (result==%"PRIu64" hex:%08x%08x)" endcolor "\n", result[i], (unsigned int)(result[i] >> 32), (unsigned int)(result[i] & 0xFFFFFFFF));
       if (i>0) {
         if (result[i-1] != result[i]) {
@@ -111,15 +111,15 @@ void Wrmsr(const uint32_t regIndex, const uint64_t& value) {
         }
         //fprintf(stdout,"!! Wrmsr: %s idx:%"PRIu32" val:%"PRIu64"\n", path, index, value);
         fprintf(stdout, startPURPLEcolortext "  !! Wrmsr: %s idx:%x val:%"PRIu64" valx:%08x%08x... ", path, regIndex, value, (unsigned int)(value >> 32), (unsigned int)(value & 0xFFFFFFFF));
-        int msr = open(path, O_WRONLY);
-        if (msr == -1) {
+        int msrdev = open(path, O_WRONLY);
+        if (msrdev == -1) {
             pERR("Failed to open msr device for writing");
             exit(-1);
         }
-        if(pwrite(msr, &value, sizeof(value), regIndex) != sizeof(value)) {
+        if(pwrite(msrdev, &value, sizeof(value), regIndex) != sizeof(value)) {
             pERR("Failed to write to msr device");
         }
-        close(msr);
+        close(msrdev);
         fprintf(stdout," done." endcolor "\n");
     }
 }
@@ -241,10 +241,22 @@ void SetCurrentPState(int numpstate) {
   if (numpstate < 0)
     numpstate = 0;
 
-  const uint32_t regIndex = 0xc0010062;
+  uint32_t regIndex = 0xc0010062;
   uint64_t msr = Rdmsr(regIndex);
   SetBits(msr, numpstate, 0, 3);
   Wrmsr(regIndex, msr);
+
+  //Next, wait for the new pstate to be set, code from: https://chromium.googlesource.com/chromiumos/third_party/coreboot/+/c02b4fc9db3c3c1e263027382697b566127f66bb/src/cpu/amd/model_10xxx/fidvid.c line 367
+  regIndex=0xC0010063;
+  int i=-1;
+  int j=-1;
+  msr=999999;//set to any invalid value
+  do {
+    msr = Rdmsr(regIndex);
+    i = GetBits(msr, 0, 16);
+    j = GetBits(msr, 0, 64);
+    cout << "i=" << i << " j=" << j << " wanted:" << numpstate << endl;//only printed once, because it's already set apparently.
+  } while (i != numpstate);
 }
 
 
@@ -266,7 +278,7 @@ inline int voltage2vid(double vid) {
 
   assert(vid<=V1325);
   assert(vid >= CPUMINVOLTAGEunderclocked); //that's the lowest (pstate7) stable voltage for my CPU, multi:8x
-  //    assert(vid<=1.0875); //that's highest (pstate0) stable voltage for my CPU, multi:22x; but initially it's 1.325V at 8x pstate0, before the downclocking!
+  //    assert(vid<=1.0875); //that's highest (pstate0) stable voltage for my CPU, multi:22x; but initially it's 1.325V at 22x pstate0, before the downclocking!
   assert(vid <= CPUMAXVOLTAGE);//when not underclocked, this is tops
   // round to nearest step
   int r = (int)(vid / CPUVIDSTEP + 0.5);
@@ -286,8 +298,7 @@ void PrintParams() {
 
   fprintf(stdout,"Hardcoded values to apply:\n");
   for (int i = 0; i < NUMPSTATES; i++) {
-    assert( allpsi[i].VID/*eg. 37*/ == voltage2vid(allpsi[i].strvid /*eg. 1.0875*/));//_pStates[i].VID);
-//    assert( i == allpsi[i].index );//_pStates[i].Index );
+    assert( allpsi[i].VID/*eg. 37*/ == voltage2vid(allpsi[i].strvid /*eg. 1.0875*/));
     fprintf(stdout,"pstate:%d multi:%02.2f vid:%d\n",// voltage:%d\n", 
         i, 
         allpsi[i].multi,
@@ -300,7 +311,7 @@ void PrintParams() {
 void applyUnderclocking() {
   //pstates stuff:
   bool modded=false;
-  for (size_t i = 0; i < NUMPSTATES; i++) {//FIXME: find a way to get size of that array?
+  for (size_t i = 0; i < NUMPSTATES; i++) {
     modded=WritePState(i, allpsi[i]) | modded;
   }
 
@@ -310,12 +321,11 @@ void applyUnderclocking() {
     const int currentPState = GetCurrentPState();
 
     //we switch to another pstate temporarily, then back again so that it takes effect (apparently that's why, unsure, it's not my coding)
-//    const int lastpstate= NUMPSTATES - 1;//aka the lowest speed one
-//    const int tempPState = (currentPState == lastpstate ? 0 : lastpstate);
-    const int tempPState = ((currentPState + 1) % NUMPSTATES);
+    const int lastpstate= NUMPSTATES - 1;//aka the lowest speed one
+    const int tempPState = (currentPState == lastpstate ? 0 : lastpstate);
+//    const int tempPState = ((currentPState + 1) % NUMPSTATES);//some cores may already be at current+1 pstate; so don't use this variant
     fprintf(stdout,"!! currentpstate:%d temppstate:%d\n", currentPState, tempPState);
     SetCurrentPState(tempPState);
-    sleep(1);//1 second
     SetCurrentPState(currentPState);
   }
 }
