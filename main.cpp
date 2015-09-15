@@ -156,10 +156,16 @@ void FindFraction(double value, const double* divisors,
 }
 
 inline double multifromfidndid(const int fid, const int did) {
-  return (fid + 16) / DIVISORS_12[did];
+  double ret= (fid + 16) / DIVISORS_12[did];
+  assert(ret>=CPUMINMULTI);
+  assert(ret<CPUMAXMULTI);
+  return ret;
 }
 
 inline void multi2fidndid(const double multi, int& fid, int& did) {
+  assert(multi>=CPUMINMULTI);
+  assert(multi<CPUMAXMULTI);
+
   const int minNumerator = 16; // numerator: 0x10 = 16 as fixed offset
   const int maxNumerator = 31 + minNumerator; // 5 bits => max 2^5-1 = 31
 
