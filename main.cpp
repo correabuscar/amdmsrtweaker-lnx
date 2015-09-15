@@ -5,17 +5,14 @@
  * about permitted and prohibited uses of this code.
  */
 
-#include <cstdio>
-#include <iostream>
+#include <cstdio> //for stdout
+#include <iostream> //for cout
 #include "mumu.h"
 
 #include <unistd.h> //for sleep(sec)
 #include <stdlib.h> //for exit
 
-#include <vector>
-
 #include <string.h>
-#include <inttypes.h> //for uint32_t uint64_t
 
 #include <assert.h>
 
@@ -26,7 +23,7 @@ using std::endl;
 
 
 void PrintInfo();//forward declaration
-void ParseParams();
+void PrintParams();
 void ApplyChanges();
 
 /*const int count=1+8;
@@ -49,11 +46,13 @@ int main(int argc, const char* argv[]) {
   cout << "argv[0] is: " << argv[0] << endl;
   try {
     if ((argc > 1)and(0 == strncmp("I wanna brick my system!", argv[1],25))) {//we make sure, because we're about to apply preset voltages!(hardcoded in source code)
-      ParseParams();
+      PrintParams();
 
       fprintf(stdout,"Before:\n");
       PrintInfo();
+
       ApplyChanges();
+
       fprintf(stdout,"After:\n");
       PrintInfo();
     } else {
@@ -252,11 +251,11 @@ void SetCurrentPState(int index) {
 
 
 
-double DecodeVID(const int vid) {
+inline double DecodeVID(const int vid) {
   return V155 - vid * CPUVIDSTEP;
 }
 
-int EncodeVID(double vid) {
+inline int EncodeVID(double vid) {
   assert(CPUVIDSTEP > 0);
   assert(vid > 0.0);
   assert(vid < V155);
@@ -281,12 +280,8 @@ int EncodeVID(double vid) {
 
 
 
-using std::endl;
-using std::min;
-using std::max;
 
-
-void ParseParams() {
+void PrintParams() {
   assert(V1325 == bootdefaults_psi[0].strvid);//ensuring; but not using V1325 because of genericity of that def. (could be changed but this use here should not!)
 
   fprintf(stdout,"Hardcoded values:\n");
@@ -315,8 +310,9 @@ void ApplyChanges() {
     const int currentPState = GetCurrentPState();
 
     //we switch to another pstate temporarily, then back again so that it takes effect (apparently that's why, unsure, it's not my coding)
-    const int lastpstate= NUMPSTATES - 1;//aka the lowest speed one
-    const int tempPState = (currentPState == lastpstate ? 0 : lastpstate);
+//    const int lastpstate= NUMPSTATES - 1;//aka the lowest speed one
+//    const int tempPState = (currentPState == lastpstate ? 0 : lastpstate);
+    const int tempPState = ((currentPState + 1) % NUMPSTATES);
     fprintf(stdout,"!! currentpstate:%d temppstate:%d\n", currentPState, tempPState);
     SetCurrentPState(tempPState);
     sleep(1);//1 second
@@ -332,3 +328,5 @@ void PrintInfo() {
 
   }
 }
+
+
