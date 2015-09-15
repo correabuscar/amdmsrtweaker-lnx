@@ -12,9 +12,9 @@
 #include <unistd.h> //for sleep(sec)
 #include <stdlib.h> //for exit
 
-#include <string.h>
+#include <string.h> //strncmp
 
-#include <assert.h>
+#include <assert.h> //assert
 
 #include <fcntl.h> //for O_RDONLY
 
@@ -22,7 +22,7 @@ using std::cout;
 using std::endl;
 
 
-void showPStateInfo();//forward declaration
+void showAndCheckCurrentPStateInfo();//forward declaration
 void PrintParams();
 void applyUnderclocking();
 
@@ -49,14 +49,14 @@ int main(int argc, const char* argv[]) {
       PrintParams();
 
       fprintf(stdout,"Before:\n");
-      showPStateInfo();
+      showAndCheckCurrentPStateInfo();
 
       applyUnderclocking();
 
       fprintf(stdout,"After:\n");
-      showPStateInfo();
+      showAndCheckCurrentPStateInfo();
     } else {
-      showPStateInfo();
+      showAndCheckCurrentPStateInfo();
     }
   } catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << endl;
@@ -316,12 +316,30 @@ void applyUnderclocking() {
   }
 }
 
-void showPStateInfo() {
+void showAndCheckCurrentPStateInfo() {
+  bool unexpected=false;
   for (int i = 0; i < NUMPSTATES; i++) {
     const PStateInfo pi = ReadPState(i);
+    const double voltage=vid2voltage(pi.VID);
 
-    cout << "  P" << i << ": " << pi.multi << "x at " << vid2voltage(pi.VID) << "V vid:"<< pi.VID << endl;
+    cout << "  P" << i << ": " << pi.multi << "x at " << voltage << "V vid:"<< pi.VID << endl;
 
+    if ((pi.multi != bootdefaults_psi[i].multi) && (pi.multi != allpsi[i].multi)) {
+      unexpected=true;
+      std::cerr << startREDcolortext << "Unexpected PState multi " << "P"<<i<<": "<<pi.multi<<"x (expected "<< allpsi[i].multi<<"x or "<<bootdefaults_psi[i].multi<<"x)" << endcolor << endl;
+    }
+
+    if ((voltage != bootdefaults_psi[i].strvid) && (voltage != allpsi[i].strvid)) {
+      std::cerr << startREDcolortext << "Unexpected PState voltage " << "P"<<i<<": "<<voltage<<"V (expected "<< allpsi[i].strvid<<"V or "<<bootdefaults_psi[i].strvid<<"V)" << endcolor << endl;
+    }
+
+    if ((pi.VID != bootdefaults_psi[i].VID) && (pi.VID != allpsi[i].VID)) {
+      std::cerr << startREDcolortext << "Unexpected PState vid " << "P"<<i<<": "<<pi.VID<<" (expected "<< allpsi[i].VID<<" or "<<bootdefaults_psi[i].VID<<")" << endcolor << endl;
+    }
+  }
+
+  if (unexpected) {
+    throw ExceptionWithMessage("P-state values unexpected");
   }
 }
 
