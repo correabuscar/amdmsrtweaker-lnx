@@ -339,7 +339,7 @@ void showAndCheckCurrentPStateInfo() {
   }
 
   if (unexpected) {
-    throw ExceptionWithMessage("P-state values unexpected");
+    throw ExceptionWithMessage("P-state values unexpected(if inside virtualbox avoid running this program!)");
   }
 }
 
