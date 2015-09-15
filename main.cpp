@@ -66,7 +66,7 @@ int main(int argc, const char* argv[]) {
   return 0;
 }
 
-uint64_t Rdmsr(uint32_t index) {
+uint64_t Rdmsr(const uint32_t regIndex) {
     uint64_t result[4]={0,0,0,0};
     char path[255]= "\0";
 
@@ -78,20 +78,20 @@ uint64_t Rdmsr(uint32_t index) {
         exit(-1);
       }
 
-      fprintf(stdout, startYELLOWcolortext "  !! Rdmsr: %s idx:%x ... %lu bytes ... ", path, index, sizeof(result[i]));
+      fprintf(stdout, startYELLOWcolortext "  !! Rdmsr: %s idx:%x ... %lu bytes ... ", path, regIndex, sizeof(result[i]));
       int msr = open(path, O_RDONLY);
       if (msr == -1) {
         pERR("Failed to open msr device for reading. You need: # modprobe msr");
         exit(-1);
       }
-      if (sizeof(result[i]) != pread(msr, &(result[i]), sizeof(result[i]), index)) {//read 8 bytes
+      if (sizeof(result[i]) != pread(msr, &(result[i]), sizeof(result[i]), regIndex)) {//read 8 bytes
         pERR("Failed to read from msr device");
       }
       close(msr);
       fprintf(stdout," done. (result==%"PRIu64" hex:%08x%08x)" endcolor "\n", result[i], (unsigned int)(result[i] >> 32), (unsigned int)(result[i] & 0xFFFFFFFF));
       if (i>0) {
         if (result[i-1] != result[i]) {
-          pERR("Rdmsr: different results for cores");
+          pERR("Rdmsr: different results for cores(this is expected to be so depending on load)");
           fprintf(stderr,"!! core[%d]==%"PRIu64" != core[%d]==%"PRIu64"\n", i-1, result[i-1], i, result[i]);
         }
       }
@@ -100,7 +100,7 @@ uint64_t Rdmsr(uint32_t index) {
     return result[0];
 }
 
-void Wrmsr(uint32_t index, const uint64_t& value) {
+void Wrmsr(const uint32_t regIndex, const uint64_t& value) {
     char path[255]= "\0";
 
     for (int i = 0; i < NUMCPUCORES; i++) {
@@ -110,13 +110,13 @@ void Wrmsr(uint32_t index, const uint64_t& value) {
           exit(-1);
         }
         //fprintf(stdout,"!! Wrmsr: %s idx:%"PRIu32" val:%"PRIu64"\n", path, index, value);
-        fprintf(stdout, startPURPLEcolortext "  !! Wrmsr: %s idx:%x val:%"PRIu64" valx:%08x%08x... ", path, index, value, (unsigned int)(value >> 32), (unsigned int)(value & 0xFFFFFFFF));
+        fprintf(stdout, startPURPLEcolortext "  !! Wrmsr: %s idx:%x val:%"PRIu64" valx:%08x%08x... ", path, regIndex, value, (unsigned int)(value >> 32), (unsigned int)(value & 0xFFFFFFFF));
         int msr = open(path, O_WRONLY);
         if (msr == -1) {
             pERR("Failed to open msr device for writing");
             exit(-1);
         }
-        if(pwrite(msr, &value, sizeof(value), index) != sizeof(value)) {
+        if(pwrite(msr, &value, sizeof(value), regIndex) != sizeof(value)) {
             pERR("Failed to write to msr device");
         }
         close(msr);
@@ -170,11 +170,12 @@ inline void multi2fidndid(const double multi, int& fid, int& did) {
   did = divisorIndex;
 }
 
-PStateInfo ReadPState(int index) {
-  const uint64_t msr = Rdmsr(0xc0010064 + index);
+PStateInfo ReadPState(const uint32_t numpstate) {
+  assert(numpstate >=0);
+  assert(numpstate < NUMPSTATES);
+  const uint64_t msr = Rdmsr(0xc0010064 + numpstate);
 
   PStateInfo result;
-  result.index = index;
 
   int fid, did;
   fid = GetBits(msr, 4, 5);
@@ -184,13 +185,15 @@ PStateInfo ReadPState(int index) {
 
   result.VID = GetBits(msr, 9, 7);
 
-  fprintf(stdout,"!! ReadPState index:%d fid:%d did:%d multi:%02.2f vid:%d\n", 
-      result.index, fid, did, result.multi, result.VID);
+  fprintf(stdout,"!! ReadPState P%d fid:%d did:%d multi:%02.2f vid:%d\n", 
+      numpstate, fid, did, result.multi, result.VID);
   return result;
 }
 
-bool WritePState(const PStateInfo& info) {
-  const uint32_t regIndex = 0xc0010064 + info.index;
+bool WritePState(const uint32_t numpstate, const PStateInfo& info) {
+  assert(numpstate >=0);
+  assert(numpstate < NUMPSTATES);
+  const uint32_t regIndex = 0xc0010064 + numpstate;
   uint64_t msr = Rdmsr(regIndex);
 
   const int fidbefore = GetBits(msr, 4, 5);
@@ -229,17 +232,18 @@ int GetCurrentPState() {
   return i;
 }
 
-void SetCurrentPState(int index) {
-  if (index < 0 || index >= NUMPSTATES)
+void SetCurrentPState(int numpstate) {
+  if (numpstate < 0 || numpstate >= NUMPSTATES)
     throw ExceptionWithMessage("P-state index out of range");
 
-  index -= 1;//NumBoostStates;
-  if (index < 0)
-    index = 0;
+  //so excluding the turbo state, however! isn't P0 the turbo state? unless this means that pstates here start from 0 to 7  and represent P7 to P0 in this order! (need to FIXME: verify this!)
+  numpstate -= 1;//NumBoostStates;
+  if (numpstate < 0)
+    numpstate = 0;
 
   const uint32_t regIndex = 0xc0010062;
   uint64_t msr = Rdmsr(regIndex);
-  SetBits(msr, index, 0, 3);
+  SetBits(msr, numpstate, 0, 3);
   Wrmsr(regIndex, msr);
 }
 
@@ -283,7 +287,7 @@ void PrintParams() {
   fprintf(stdout,"Hardcoded values to apply:\n");
   for (int i = 0; i < NUMPSTATES; i++) {
     assert( allpsi[i].VID/*eg. 37*/ == voltage2vid(allpsi[i].strvid /*eg. 1.0875*/));//_pStates[i].VID);
-    assert( i == allpsi[i].index );//_pStates[i].Index );
+//    assert( i == allpsi[i].index );//_pStates[i].Index );
     fprintf(stdout,"pstate:%d multi:%02.2f vid:%d\n",// voltage:%d\n", 
         i, 
         allpsi[i].multi,
@@ -297,7 +301,7 @@ void applyUnderclocking() {
   //pstates stuff:
   bool modded=false;
   for (size_t i = 0; i < NUMPSTATES; i++) {//FIXME: find a way to get size of that array?
-    modded=WritePState(allpsi[i]) | modded;
+    modded=WritePState(i, allpsi[i]) | modded;
   }
 
   if (modded) {
