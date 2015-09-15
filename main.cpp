@@ -22,9 +22,9 @@ using std::cout;
 using std::endl;
 
 
-void PrintInfo();//forward declaration
+void showPStateInfo();//forward declaration
 void PrintParams();
-void ApplyChanges();
+void applyUnderclocking();
 
 /*const int count=1+8;
   const char* params[count]={
@@ -49,14 +49,14 @@ int main(int argc, const char* argv[]) {
       PrintParams();
 
       fprintf(stdout,"Before:\n");
-      PrintInfo();
+      showPStateInfo();
 
-      ApplyChanges();
+      applyUnderclocking();
 
       fprintf(stdout,"After:\n");
-      PrintInfo();
+      showPStateInfo();
     } else {
-      PrintInfo();
+      showPStateInfo();
     }
   } catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << endl;
@@ -66,15 +66,11 @@ int main(int argc, const char* argv[]) {
   return 0;
 }
 
-int inline get_num_cpu() {
-    return 4;//assume 4 cores - my CPU
-}
-
 uint64_t Rdmsr(uint32_t index) {
     uint64_t result[4]={0,0,0,0};
     char path[255]= "\0";
 
-    for (int i = 0; i < get_num_cpu(); i++) {
+    for (int i = 0; i < NUMCPUCORES; i++) {
       int ret=sprintf(path, "/dev/cpu/%d/msr", i);
       if (ret<0) {
         pERR("snprintf failed");
@@ -107,7 +103,7 @@ uint64_t Rdmsr(uint32_t index) {
 void Wrmsr(uint32_t index, const uint64_t& value) {
     char path[255]= "\0";
 
-    for (int i = 0; i < get_num_cpu(); i++) {
+    for (int i = 0; i < NUMCPUCORES; i++) {
         int ret=sprintf(path, "/dev/cpu/%d/msr", i);
         if (ret<0) {
           pERR("snprintf failed");
@@ -159,11 +155,11 @@ void FindFraction(double value, const double* divisors,
   }
 }
 
-inline double DecodeMulti(const int fid, const int did) {
+inline double multifromfidndid(const int fid, const int did) {
   return (fid + 16) / DIVISORS_12[did];
 }
 
-inline void EncodeMulti(const double multi, int& fid, int& did) {
+inline void multi2fidndid(const double multi, int& fid, int& did) {
   const int minNumerator = 16; // numerator: 0x10 = 16 as fixed offset
   const int maxNumerator = 31 + minNumerator; // 5 bits => max 2^5-1 = 31
 
@@ -184,7 +180,7 @@ PStateInfo ReadPState(int index) {
   fid = GetBits(msr, 4, 5);
   did = GetBits(msr, 0, 4);
 
-  result.multi = DecodeMulti(fid, did);
+  result.multi = multifromfidndid(fid, did);
 
   result.VID = GetBits(msr, 9, 7);
 
@@ -199,7 +195,7 @@ bool WritePState(const PStateInfo& info) {
 
   const int fidbefore = GetBits(msr, 4, 5);
   const int didbefore = GetBits(msr, 0, 4);
-  const double Multi = DecodeMulti(fidbefore, didbefore);
+  const double Multi = multifromfidndid(fidbefore, didbefore);
   const int VID = GetBits(msr, 9, 7);
   fprintf(stdout,"!! Write PState(1of3) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
 
@@ -207,7 +203,7 @@ bool WritePState(const PStateInfo& info) {
   assert(info.multi <= CPUMAXMULTIunderclocked);
 
   int fid, did;
-  EncodeMulti(info.multi, fid, did);
+  multi2fidndid(info.multi, fid, did);
   if ((fid != fidbefore) || (did != didbefore)) {
     SetBits(msr, fid, 4, 5);
     SetBits(msr, did, 0, 4);
@@ -251,14 +247,14 @@ void SetCurrentPState(int index) {
 
 
 
-inline double DecodeVID(const int vid) {
+inline double vid2voltage(const int vid) {
   return V155 - vid * CPUVIDSTEP;
 }
 
-inline int EncodeVID(double vid) {
+inline int voltage2vid(double vid) {
   assert(CPUVIDSTEP > 0);
   assert(vid > 0.0);
-  assert(vid < V155);
+  assert(vid < V155);//XXX: actual max for my CPU is probably 1.40V though!(need to verify this).
   //^ wanna catch the mistake rather than just round to the limits
 
   //XXX: here, just making sure input vid doesn't exceed 1.325V ! (my CPU)
@@ -284,9 +280,9 @@ inline int EncodeVID(double vid) {
 void PrintParams() {
   assert(V1325 == bootdefaults_psi[0].strvid);//ensuring; but not using V1325 because of genericity of that def. (could be changed but this use here should not!)
 
-  fprintf(stdout,"Hardcoded values:\n");
+  fprintf(stdout,"Hardcoded values to apply:\n");
   for (int i = 0; i < NUMPSTATES; i++) {
-    assert( allpsi[i].VID/*eg. 37*/ == EncodeVID(allpsi[i].strvid /*eg. 1.0875*/));//_pStates[i].VID);
+    assert( allpsi[i].VID/*eg. 37*/ == voltage2vid(allpsi[i].strvid /*eg. 1.0875*/));//_pStates[i].VID);
     assert( i == allpsi[i].index );//_pStates[i].Index );
     fprintf(stdout,"pstate:%d multi:%02.2f vid:%d\n",// voltage:%d\n", 
         i, 
@@ -297,7 +293,7 @@ void PrintParams() {
 }
 
 
-void ApplyChanges() {
+void applyUnderclocking() {
   //pstates stuff:
   bool modded=false;
   for (size_t i = 0; i < NUMPSTATES; i++) {//FIXME: find a way to get size of that array?
@@ -320,11 +316,11 @@ void ApplyChanges() {
   }
 }
 
-void PrintInfo() {
+void showPStateInfo() {
   for (int i = 0; i < NUMPSTATES; i++) {
     const PStateInfo pi = ReadPState(i);
 
-    cout << "  P" << i << ": " << pi.multi << "x at " << DecodeVID(pi.VID) << "V vid:"<< pi.VID << endl;
+    cout << "  P" << i << ": " << pi.multi << "x at " << vid2voltage(pi.VID) << "V vid:"<< pi.VID << endl;
 
   }
 }

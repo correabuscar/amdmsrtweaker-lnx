@@ -20,6 +20,7 @@ static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 1
 #define REFERENCECLOCK DEFAULTREFERENCECLOCK //for my CPU, is the same 100MHz (unused)
 
 #define NUMPSTATES 8
+#define NUMCPUCORES 4 //4 cores, for my CPU
 #define CPUFAMILY 0x12
 #define CPUMODEL 0x1
 #define CPUMINMULTI 1.0
