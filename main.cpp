@@ -97,7 +97,7 @@ uint64_t Rdmsr(const uint32_t regIndex) {
       }
     }
 
-    return result[0];
+    return result[0];//return only the core0 result
 }
 
 void Wrmsr(const uint32_t regIndex, const uint64_t& value) {
@@ -250,7 +250,6 @@ void SetCurrentPState(int numpstate) {
   regIndex=0xC0010063;
   int i=-1;
   int j=-1;
-  msr=999999;//set to any invalid value
   do {
     msr = Rdmsr(regIndex);
     i = GetBits(msr, 0, 16);
@@ -267,27 +266,27 @@ inline double vid2voltage(const int vid) {
   return V155 - vid * CPUVIDSTEP;
 }
 
-inline int voltage2vid(double vid) {
+inline int voltage2vid(double voltage) {
   assert(CPUVIDSTEP > 0);
-  assert(vid > 0.0);
-  assert(vid < V155);//XXX: actual max for my CPU is probably 1.40V though!(need to verify this).
+  assert(voltage > 0.0);
+  assert(voltage < V155);//XXX: actual max for my CPU is probably 1.40V though!(need to verify this).
   //^ wanna catch the mistake rather than just round to the limits
 
-  //XXX: here, just making sure input vid doesn't exceed 1.325V ! (my CPU)
-  vid = std::max(0.0, std::min(V1325, vid));//done: use a less than 1.55 max voltage there, depending on reported one which is 1.325V for my cpu eg. 1.45 shouldn't be allowed!; OK, maybe that 1.55 is something else... in which case ignore all this.
+  //XXX: here, just making sure input voltage doesn't exceed 1.325V ! (my CPU)
+  voltage = std::max(0.0, std::min(V1325, voltage));//done: use a less than 1.55 max voltage there, depending on reported one which is 1.325V for my cpu eg. 1.45 shouldn't be allowed!; OK, maybe that 1.55 is something else... in which case ignore all this.
 
-  assert(vid<=V1325);
-  assert(vid >= CPUMINVOLTAGEunderclocked); //that's the lowest (pstate7) stable voltage for my CPU, multi:8x
+  assert(voltage<=V1325);
+  assert(voltage >= CPUMINVOLTAGEunderclocked); //that's the lowest (pstate7) stable voltage for my CPU, multi:8x
   //    assert(vid<=1.0875); //that's highest (pstate0) stable voltage for my CPU, multi:22x; but initially it's 1.325V at 22x pstate0, before the downclocking!
-  assert(vid <= CPUMAXVOLTAGE);//when not underclocked, this is tops
+  assert(voltage <= CPUMAXVOLTAGE);//when not underclocked, this is tops
   // round to nearest step
-  int r = (int)(vid / CPUVIDSTEP + 0.5);
+  int r = (int)(voltage / CPUVIDSTEP + 0.5);
 
   //1.55 / VIDStep = highest VID (124)
-  int res= (int)(V155 / CPUVIDSTEP) - r;//VIDStep is 0.0125; so, 124 - 87(for 1.0875 aka 22x multi) = 37
-  assert(res >= CPUMAXVID);//multi 23x, fid 30, did 2, vid 18, pstate0 (highest) normal clocked
-  assert(res <= CPUMINVIDunderclocked);//multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
-  return res;
+  int vid= (int)(V155 / CPUVIDSTEP) - r;//VIDStep is 0.0125; so, 124 - 87(for 1.0875 aka 22x multi) = 37
+  assert(vid >= CPUMAXVID);//multi 23x, fid 30, did 2, vid 18, pstate0 (highest) normal clocked
+  assert(vid <= CPUMINVIDunderclocked);//multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
+  return vid;
 }
 
 
