@@ -236,8 +236,10 @@ void SetCurrentPState(int numpstate) {
   if (numpstate < 0 || numpstate >= NUMPSTATES)
     throw ExceptionWithMessage("P-state index out of range");
 
-  //so excluding the turbo state, however! isn't P0 the turbo state? unless this means that pstates here start from 0 to 7  and represent P7 to P0 in this order! (need to FIXME: verify this!)
-  numpstate -= 1;//NumBoostStates;
+  // //so excluding the turbo state, however! isn't P0 the turbo state? unless this means that pstates here start from 0 to 7  and represent P7 to P0 in this order! (need to FIXME: verify this!) nope, P0 is turbo state here too, confirmed by http://review.coreboot.org/gitweb?p=coreboot.git;a=commitdiff;h=363010694dba5b5c9132e78be357a1098bdc0aba which says "/* All cores: set pstate 0 (1600 MHz) early to save a few ms of boot time */"
+  //ok so I got it: https://github.com/johkra/amdmsrtweaker-lnx/commit/11a4fe2f486a6686bd5e64bc0e6859145a890ef2#commitcomment-13245640
+  //decrease the turbo state(s) because index=0 is P1 ... and there is no way to select turbo state! (I may still be wrong, but this explaination makes sense why this was originally coded this way)
+  numpstate -= 1;//NumBoostStates;//XXX: no idea why decrease by 1 here then.
   if (numpstate < 0)
     numpstate = 0;
 
@@ -325,7 +327,9 @@ void applyUnderclocking() {
 //    const int tempPState = ((currentPState + 1) % NUMPSTATES);//some cores may already be at current+1 pstate; so don't use this variant
     fprintf(stdout,"!! currentpstate:%d temppstate:%d\n", currentPState, tempPState);
     SetCurrentPState(tempPState);
+    fprintf(stdout,"!! currentpstate:%d\n", GetCurrentPState());
     SetCurrentPState(currentPState);
+    fprintf(stdout,"!! currentpstate:%d\n", GetCurrentPState());
   }
 }
 
