@@ -199,7 +199,7 @@ PStateInfo ReadPState(const uint32_t numpstate) {
   return result;
 }
 
-bool WritePState(const uint32_t numpstate, const PStateInfo& info) {
+bool WritePState(const uint32_t numpstate, const struct PStateInfo& info) {
   assert(numpstate >=0);
   assert(numpstate < NUMPSTATES);
   const uint32_t regIndex = 0xc0010064 + numpstate;
