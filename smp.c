@@ -587,7 +587,8 @@ static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 1
 struct PStateInfo {
   u32 fid;//frequency identifier (was deduced from multi)
   u32 did;//divisor index (was deduced from multi)
-  double multi; //multiplier ( multiply with the reference clock of 100Mhz eg. multi*REFERENCECLOCK)
+//  double multi; //multiplier ( multiply with the reference clock of 100Mhz eg. multi*REFERENCECLOCK)
+  u32 multi;
   double strvid; //real life voltage eg. 1.325V as a double
   int VID; //vid, eg. 18 (for 1.325V) or 67 (for 1.0875V)
 };
@@ -806,7 +807,7 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
   printkd("!! Write(1of2) PState%d read : fid:%d did:%d vid:%d Multi:N/A\n", 
       numpstate, fidbefore, didbefore, VID);//FIXME:
 
-  BUGIFNOT(info->multi >= CPUMINMULTIunderclocked);
+  BUGIFNOT(info->multi >= CPUMINMULTIunderclocked);//FIXME: smp.c:809: undefined reference to `__gedf2'  due to double no doubt!
   BUGIFNOT(info->multi <= CPUMAXMULTIunderclocked);
 
   //multi2fidndid(info->multi, &fid, &did);//FIXME:
@@ -821,8 +822,10 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
     BUGIFNOT(info->VID <= CPUMINVIDunderclocked);
     msr=SetBits(msr, info->VID, 9, 7);
 
-    printkd("!! Write(2of2) PState%d write:%d did:%d vid:%d (multi:%02.2f) ... ", 
-        numpstate, fid, did, info->VID, info->multi);
+    printkd("!! Write(2of2) PState%d write:%d did:%d vid:%d "//"(multi:%02.2f)"
+        "(multi:%d)"
+        " ... "
+        ,numpstate, fid, did, info->VID, info->multi);
     Wrmsr(regIndex, msr);
     printkd("done.\n");
     return true;
