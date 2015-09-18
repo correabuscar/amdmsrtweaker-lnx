@@ -41,7 +41,7 @@ static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 1
 #define CPUMINVIDunderclocked 67 //multi 8x, fid 0, did 2 vid 67, pstate7(lowest) underclocked
 #define CPUMINVOLTAGEunderclocked 0.7125 //1.55 - 67*0.0125 = .7125
 
-const PStateInfo  __attribute__((unused)) bootdefaults_psi[NUMPSTATES]={//XXX: fyi only, do not use this!
+const struct PStateInfo  __attribute__((unused)) bootdefaults_psi[NUMPSTATES]={//XXX: fyi only, do not use this!
   {23.0, 1.325, 18}, //P0, boost
   {14.0, 1.0625, 39}, //P1, normal
   {13.0, 1.025, 42},
@@ -52,7 +52,7 @@ const PStateInfo  __attribute__((unused)) bootdefaults_psi[NUMPSTATES]={//XXX: f
   {8.0, 0.925, 50} //P7, normal
 };
 //bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
-const PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
+const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
   {22.0, 1.0875, 37}, //P0, boost
   {20.0, 1.0250, 42}, //P1, normal
   {18.0, 0.9625, 47},
