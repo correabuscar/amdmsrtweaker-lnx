@@ -67,7 +67,7 @@ int main(int argc, const char* argv[]) {
 }
 
 uint64_t Rdmsr(const uint32_t regIndex) {
-    uint64_t result[4]={0,0,0,0};
+    uint64_t result[NUMCPUCORES]={0,0,0,0};
     char path[255]= "\0";
 
     for (int i = 0; i < NUMCPUCORES; i++) {
