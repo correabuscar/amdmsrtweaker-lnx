@@ -552,6 +552,7 @@ early_param("CPUunderclocking", CPUunderclocking);
 
 // special divisors for family 0x12 (aka 18 in decimal)
 static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 0.0 };
+//XXX: that 1.5 is needed for the 14.0 multi for example. (5+16)/1.5 = 14
 
 //top voltage, fixed value used for calculating VIDs and stuff, do not change!!!
 #define V155 1.55
@@ -584,31 +585,33 @@ static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 1
 #define CPUMINVOLTAGEunderclocked 0.7125 //1.55 - 67*0.0125 = .7125
 
 struct PStateInfo {
-    double multi; //multiplier ( multiply with the reference clock of 100Mhz eg. multi*REFERENCECLOCK)
-    double strvid; //real life voltage eg. 1.325V as a double
-    int VID; //vid, eg. 18 (for 1.325V) or 67 (for 1.0875V)
+  u32 fid;//frequency identifier (was deduced from multi)
+  u32 did;//divisor index (was deduced from multi)
+  double multi; //multiplier ( multiply with the reference clock of 100Mhz eg. multi*REFERENCECLOCK)
+  double strvid; //real life voltage eg. 1.325V as a double
+  int VID; //vid, eg. 18 (for 1.325V) or 67 (for 1.0875V)
 };
 
 const struct PStateInfo bootdefaults_psi[NUMPSTATES]={//XXX: fyi only, do not use this!
-  {23.0, 1.325, 18}, //P0, boost
-  {14.0, 1.0625, 39}, //P1, normal
-  {13.0, 1.025, 42},
-  {12.0, 0.9875, 45},
-  {11.0, 0.975, 46},
-  {10.0, 0.9625, 47},
-  {9.0, 0.95, 48},
-  {8.0, 0.925, 50} //P7, normal
+  {30, 2, 23.0, 1.325, 18}, //P0, boost
+  {26, 3, 14.0, 1.0625, 39}, //P1, normal
+  {23, 3, 13.0, 1.025, 42},
+  {20, 3, 12.0, 0.9875, 45},
+  {17, 3, 11.0, 0.975, 46},
+  {14, 3, 10.0, 0.9625, 47},
+  {11, 3, 9.0, 0.95, 48},
+  {16, 4, 8.0, 0.925, 50} //P7, normal
 };
 //bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
 const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
-  {22.0, 1.0875, 37}, //P0, boost
-  {20.0, 1.0250, 42}, //P1, normal
-  {18.0, 0.9625, 47},
-  {17.0, 0.9375, 49},
-  {16.0, 0.9, 52},
-  {14.0, 0.8625, 55},
-  {12.0, 0.8125, 59},
-  {8.0, 0.7125, 67} //P7, normal
+  {6, 0, 22.0, 1.0875, 37}, //P0, boost
+  {4, 0, 20.0, 1.0250, 42}, //P1, normal
+  {2, 0, 18.0, 0.9625, 47},
+  {1, 0, 17.0, 0.9375, 49},
+  {0, 0, 16.0, 0.9, 52},
+  {5, 1, 14.0, 0.8625, 55},
+  {2, 1, 12.0, 0.8125, 59},
+  {0, 2, 8.0, 0.7125, 67} //P7, normal
 };
 
 u32 __init GetBits(u64 value, unsigned char offset, unsigned char numBits) {
@@ -787,7 +790,7 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
   int fid, did;
 
   BUG_ON(NULL == info);
-  BUG_ON(numpstate >=0);
+  BUG_ON(numpstate >=0);//FIXME: BUG_ON is the reverse of assert!!
   BUG_ON(numpstate < NUMPSTATES);
 
   regIndex = 0xc0010064 + numpstate;//kernel/smp.c:788:12: error: assignment of read-only variable ‘regIndex’
@@ -796,10 +799,11 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
 
   fidbefore = GetBits(msr, 4, 5);
   didbefore = GetBits(msr, 0, 4);
-  multifromfidndid(&Multi, fidbefore, didbefore);
+//  multifromfidndid(&Multi, fidbefore, didbefore); FIXME: find a way to make double work, or do fixed-point arithmethic(fpa) somehow
   VID = GetBits(msr, 9, 7);
 
-  printkd("!! Write PState(1of2) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
+//  printkd("!! Write PState(1of2) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
+  printkd("!! Write PState(1of2) read : fid:%d did:%d vid:%d Multi:N/A\n", fidbefore, didbefore, VID);//FIXME:
 
   BUG_ON(info->multi >= CPUMINMULTIunderclocked);
   BUG_ON(info->multi <= CPUMAXMULTIunderclocked);
