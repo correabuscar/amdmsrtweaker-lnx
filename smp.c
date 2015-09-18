@@ -548,7 +548,7 @@ early_param("CPUunderclocking", CPUunderclocking);
 #define printkn(fmt, a...) _prik2(KERN_NOTICE fmt, ##a)
 #define printki(fmt, a...) _prik2(KERN_INFO fmt, ##a)
 #define printkd(fmt, a...) _prik2(KERN_DEBUG fmt, ##a)
-
+#define BUGIFNOT(a) BUG_ON(!(a))
 
 // special divisors for family 0x12 (aka 18 in decimal)
 static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 0.0 };
@@ -614,12 +614,12 @@ const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
   {0, 2, 8.0, 0.7125, 67} //P7, normal
 };
 
-u32 __init GetBits(u64 value, unsigned char offset, unsigned char numBits) {
+static u32 __init GetBits(u64 value, unsigned char offset, unsigned char numBits) {
     const u64 mask = (((u64)1 << numBits) - (u64)1); // 2^numBits - 1; after right-shift
     return (u32)((value >> offset) & mask);
 }
 
-u64 __init SetBits(u64 value, u32 bits, unsigned char offset, unsigned char numBits) {
+static u64 __init SetBits(u64 value, u32 bits, unsigned char offset, unsigned char numBits) {
     const u64 mask = (((u64)1 << numBits) - (u64)1) << offset; // 2^numBits - 1, shifted by offset to the left
     value = (value & ~mask) | (((u64)bits << offset) & mask);
     return value;
@@ -662,7 +662,7 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
   return firsterr;//0 on success
 }
 
-u64 Rdmsr(const u32 regIndex) {
+static u64 __init Rdmsr(const u32 regIndex) {
   u64 result[NUMCPUCORES]={0,0,0,0};
   int firsterr = 0;
   int err;
@@ -708,7 +708,7 @@ u64 Rdmsr(const u32 regIndex) {
   }
 }
 
-void __init multifromfidndid(double *dest_multi, const int fid, const int did) {//kernel/smp.c:702:1: error: SSE register return with SSE disabled   (that's due to the use of type:  double)
+/*void __init multifromfidndid(double *dest_multi, const int fid, const int did) {//kernel/smp.c:702:1: error: SSE register return with SSE disabled   (that's due to the use of type:  double)
 
   double multi= (fid + 16) / DIVISORS_12[did];
 
@@ -718,8 +718,8 @@ void __init multifromfidndid(double *dest_multi, const int fid, const int did) {
     printka("!! unexpected multiplier, you're probably running inside virtualbox fid:%d  did:%d multi:%f",
       fid, did, multi);
   }
-  BUG_ON(multi>=CPUMINMULTI);
-  BUG_ON(multi<=CPUMAXMULTI);
+  BUGIFNOT(multi>=CPUMINMULTI);
+  BUGIFNOT(multi<=CPUMAXMULTI);
 //  return multi;
   *dest_multi=multi;
 }
@@ -770,14 +770,14 @@ inline void __init multi2fidndid(const double multi, int *fid, int *did) {
 
   BUG_ON( NULL == fid);
   BUG_ON( NULL == did);
-  BUG_ON(multi>=CPUMINMULTI);
-  BUG_ON(multi<CPUMAXMULTI);
+  BUGIFNOT(multi>=CPUMINMULTI);
+  BUGIFNOT(multi<CPUMAXMULTI);
 
   FindFraction(multi, DIVISORS_12, &numerator, &divisorIndex, minNumerator, maxNumerator);
 
   *fid = numerator - minNumerator;
   *did = divisorIndex;
-}
+}*/
 
 
 static bool __init WritePState(const u32 numpstate, const struct PStateInfo *info) {//FIXME: so what if I'm passing the entire struct? or should I leave it as pointer? but don't want struct's contents modified!
@@ -785,13 +785,13 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
   u64 msr;
   int fidbefore;
   int didbefore;
-  double Multi;
+//  double Multi;
   int VID;
   int fid, did;
 
   BUG_ON(NULL == info);
-  BUG_ON(numpstate >=0);//FIXME: BUG_ON is the reverse of assert!!
-  BUG_ON(numpstate < NUMPSTATES);
+  BUGIFNOT(numpstate >=0);//done: BUG_ON is the reverse of assert!!
+  BUGIFNOT(numpstate < NUMPSTATES);
 
   regIndex = 0xc0010064 + numpstate;//kernel/smp.c:788:12: error: assignment of read-only variable ‘regIndex’
   //XXX: see? that's what ISO C90 does, prevents me from const-ifying a var if I've to do an assert/BUG_ON before assigning its initial value! AND makes me put vars at top which I should otherwise not have access to until later on in code, thus allowing me the opportunity to typo or misused a different but similarly names var and thus introduce a bug.
@@ -803,26 +803,31 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
   VID = GetBits(msr, 9, 7);
 
 //  printkd("!! Write PState(1of2) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
-  printkd("!! Write PState(1of2) read : fid:%d did:%d vid:%d Multi:N/A\n", fidbefore, didbefore, VID);//FIXME:
+  printkd("!! Write(1of2) PState%d read : fid:%d did:%d vid:%d Multi:N/A\n", 
+      numpstate, fidbefore, didbefore, VID);//FIXME:
 
-  BUG_ON(info->multi >= CPUMINMULTIunderclocked);
-  BUG_ON(info->multi <= CPUMAXMULTIunderclocked);
+  BUGIFNOT(info->multi >= CPUMINMULTIunderclocked);
+  BUGIFNOT(info->multi <= CPUMAXMULTIunderclocked);
 
-  multi2fidndid(info->multi, &fid, &did);
+  //multi2fidndid(info->multi, &fid, &did);//FIXME:
+  fid=info->fid;
+  did=info->did;
+
   if ((fid != fidbefore) || (did != didbefore)) {
     msr=SetBits(msr, fid, 4, 5);
     msr=SetBits(msr, did, 0, 4);
 
-    BUG_ON(info->VID >= CPUMAXVIDunderclocked);
-    BUG_ON(info->VID <= CPUMINVIDunderclocked);
+    BUGIFNOT(info->VID >= CPUMAXVIDunderclocked);
+    BUGIFNOT(info->VID <= CPUMINVIDunderclocked);
     msr=SetBits(msr, info->VID, 9, 7);
 
-    printkd("!! Write PState(2of2) write:%d did:%d vid:%d (multi:%02.2f) ... ", fid, did, info->VID, info->multi);
+    printkd("!! Write(2of2) PState%d write:%d did:%d vid:%d (multi:%02.2f) ... ", 
+        numpstate, fid, did, info->VID, info->multi);
     Wrmsr(regIndex, msr);
     printkd("done.\n");
     return true;
   } else {
-    printkd("!! Write PState(2of2) no write needed: same values. Done.\n");
+    printkd("!! Write(2of2) PState%d no write needed: same values. Done.\n", numpstate);
     return false;
   }
 }
@@ -833,13 +838,14 @@ int __init GetCurrentPState(void) {
   return i;
 }
 
-void SetCurrentPState(int numpstate) {
+void __init SetCurrentPState(int numpstate) {
   u32 regIndex = 0xc0010062;
   u64 msr;
   int i=-1;
   int j=-1;
 
-  BUG_ON(numpstate < 0 || numpstate >= NUMPSTATES);
+  BUG_ON(numpstate < 0);
+  BUG_ON(numpstate >= NUMPSTATES);
 //    throw ExceptionWithMessage("P-state index out of range");
 
   // //so excluding the turbo state, however! isn't P0 the turbo state? unless this means that pstates here start from 0 to 7  and represent P7 to P0 in this order! (need to FIXME: verify this!) nope, P0 is turbo state here too, confirmed by http://review.coreboot.org/gitweb?p=coreboot.git;a=commitdiff;h=363010694dba5b5c9132e78be357a1098bdc0aba which says "/* All cores: set pstate 0 (1600 MHz) early to save a few ms of boot time */"
@@ -881,7 +887,7 @@ static void __init apply_underclocking_if_needed(void)
     }
 
     if (modded) {
-      printkd("Switching to another p-state temporarily so to ensure current one uses newly applied values\n");
+      printkd("Switching to another p-state temporarily so to ensure that the current one uses newly applied values\n");
 
       currentPState = GetCurrentPState();
 
