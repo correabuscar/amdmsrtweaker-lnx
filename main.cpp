@@ -102,6 +102,24 @@ uint64_t Rdmsr(const uint32_t regIndex) {
 
 void Wrmsr(const uint32_t regIndex, const uint64_t& value) {
     char path[255]= "\0";
+    const uint32_t *tmp1=(const uint32_t *)&value;
+//    const uint32_t *tmp2=tmp1+2;
+    uint32_t data1[2];
+    memcpy(&data1, tmp1, 8);
+//    data1=tmp1;
+//    uint32_t data2[2];
+//    memcpy(data2, tmp2, 8);
+    fprintf(stdout, startPURPLEcolortext "  !! Wrmsr: %s idx:%x val:%"PRIu64" valx:%08x%08x... %x %x sizeof=%lu %lu\n" endcolor, 
+        path, regIndex, value, (unsigned int)(value >> 32), (unsigned int)(value & 0xFFFFFFFF), 
+        data1[0],
+        data1[1],
+//        data2[0],
+//        data2[1],
+        sizeof(value),
+        sizeof(data1[0])
+        );
+    fflush(stdout);
+    exit(1);
 
     for (int i = 0; i < NUMCPUCORES; i++) {
         int ret=sprintf(path, "/dev/cpu/%d/msr", i);
@@ -216,7 +234,7 @@ bool WritePState(const uint32_t numpstate, const PStateInfo& info) {
 
   int fid, did;
   multi2fidndid(info.multi, fid, did);
-  if ((fid != fidbefore) || (did != didbefore)) {
+  if ((fid != fidbefore) || (did != didbefore) || true) {
     SetBits(msr, fid, 4, 5);
     SetBits(msr, did, 0, 4);
 
