@@ -551,7 +551,7 @@ early_param("CPUunderclocking", CPUunderclocking);
 
 
 // special divisors for family 0x12 (aka 18 in decimal)
-static const u32 DIVISORS_12[] = { 1, /*1.5*/1, 2, 3, 4, 6, 8, 12, 16, 0 };
+static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 0.0 };
 
 //top voltage, fixed value used for calculating VIDs and stuff, do not change!!!
 #define V155 1.55
@@ -564,8 +564,8 @@ static const u32 DIVISORS_12[] = { 1, /*1.5*/1, 2, 3, 4, 6, 8, 12, 16, 0 };
 #define NUMCPUCORES 4 //4 cores, for my CPU
 #define CPUFAMILY 0x12
 #define CPUMODEL 0x1
-#define CPUMINMULTI 1
-#define CPUMAXMULTI 40 //24+16
+#define CPUMINMULTI 1.0
+#define CPUMAXMULTI 40.0 //24+16
 #define CPUVIDSTEP 0.0125 //fixed; default step for pre SVI2 platforms
 
 #define CPUMINVID 88 //1.55 - 88*0.0125 = 0.450
@@ -705,23 +705,23 @@ u64 Rdmsr(const u32 regIndex) {
   }
 }
 
-u32 __init multifromfidndid(/*double *dest_multi,*/ const int fid, const int did) {//kernel/smp.c:702:1: error: SSE register return with SSE disabled   (that's due to the use of type:  double)
+void __init multifromfidndid(double *dest_multi, const int fid, const int did) {//kernel/smp.c:702:1: error: SSE register return with SSE disabled   (that's due to the use of type:  double)
 
-  u32 multi= (u32)(fid + 16) / (u32)DIVISORS_12[did];//downgraded from double to u32
+  double multi= (fid + 16) / DIVISORS_12[did];
 
-//  BUG_ON(NULL == dest_multi);
+  BUG_ON(NULL == dest_multi);
 
   if ((multi < CPUMINMULTI) || (multi > CPUMAXMULTI)) {
-    printka("!! unexpected multiplier, you're probably running inside virtualbox fid:%d  did:%d multi:%d",
+    printka("!! unexpected multiplier, you're probably running inside virtualbox fid:%d  did:%d multi:%f",
       fid, did, multi);
   }
   BUG_ON(multi>=CPUMINMULTI);
   BUG_ON(multi<=CPUMAXMULTI);
-  return multi;
-//  *dest_multi=multi;
+//  return multi;
+  *dest_multi=multi;
 }
 
-static void __init FindFraction(double value, const u32* divisors,
+static void __init FindFraction(double value, const double* divisors,
     int *numerator, int *divisorIndex,
     const int minNumerator, const int maxNumerator) {
   // limitations: non-negative value and divisors
@@ -782,7 +782,7 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
   u64 msr;
   int fidbefore;
   int didbefore;
-  u32 Multi;
+  double Multi;
   int VID;
   int fid, did;
 
@@ -796,11 +796,10 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
 
   fidbefore = GetBits(msr, 4, 5);
   didbefore = GetBits(msr, 0, 4);
-  //multifromfidndid(&Multi, fidbefore, didbefore);
-  Multi = multifromfidndid(fidbefore, didbefore);
+  multifromfidndid(&Multi, fidbefore, didbefore);
   VID = GetBits(msr, 9, 7);
 
-  printkd("!! Write PState(1of2) read : fid:%d did:%d vid:%d Multi:%d\n", fidbefore, didbefore, VID, Multi);
+  printkd("!! Write PState(1of2) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
 
   BUG_ON(info->multi >= CPUMINMULTIunderclocked);
   BUG_ON(info->multi <= CPUMAXMULTIunderclocked);
