@@ -8,5 +8,7 @@ and 4.3.rc1.r217.g00ade1f-1
 
 EOF
 
-diff -up kernel/smp.c.orig kernel/smp.c >> "$fil"
+diff -upr a b >> "$fil"
+
+#sed -e 's/smp\.c\.orig/smp\.c/' -i "$fil"
 

@@ -1,8 +1,9 @@
 this was applied on top of kernel 4.2.rc4.r0.gcbfe8fa-1
 and 4.3.rc1.r217.g00ade1f-1
 
---- kernel/smp.c.orig	2015-09-19 21:50:21.820631272 +0200
-+++ kernel/smp.c	2015-09-20 00:02:22.979396879 +0200
+diff -upr a/kernel/smp.c b/kernel/smp.c
+--- a/kernel/smp.c	2015-09-19 21:50:21.820631272 +0200
++++ b/kernel/smp.c	2015-09-20 00:02:22.979396879 +0200
 @@ -507,6 +507,9 @@ EXPORT_SYMBOL(smp_call_function);
  unsigned int setup_max_cpus = NR_CPUS;
  EXPORT_SYMBOL(setup_max_cpus);
