@@ -654,6 +654,7 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
     for (tmp=0; 0 < NUMPSTATES; tmp++) {
       if (
           ((allpsi[tmp].regIndex == regIndex) && (allpsi[tmp].datahi == data_hi) && (allpsi[tmp].datalo == data_lo))
+          ||
           ((bootdefaults_psi[tmp].regIndex == regIndex) && (bootdefaults_psi[tmp].datahi == data_hi) && (bootdefaults_psi[tmp].datalo == data_lo))
           ||
           ( (0xc0010062 == regIndex) && (0 == data_hi) && (data_lo>=0) && (data_lo <=6) ) //change current pstate = allowed
@@ -664,7 +665,7 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
       }
     }
     if (!safe) {
-      printka("safetyfail\n",
+      printka("safetyfail\n"
           "    !! Wrmsr: not allowing msr write with those values. (this was meant to indicate a bug in code)\n");
       return 1;
     }
