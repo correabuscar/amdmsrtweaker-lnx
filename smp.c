@@ -591,28 +591,31 @@ struct PStateInfo {
   u32 multi;
   double strvid; //real life voltage eg. 1.325V as a double
   int VID; //vid, eg. 18 (for 1.325V) or 67 (for 1.0875V)
+  u32 regIndex;
+  u32 datahi;
+  u32 datalo;
 };
 
 const struct PStateInfo bootdefaults_psi[NUMPSTATES]={//XXX: fyi only, do not use this!
-  {30, 2, 23.0, 1.325, 18}, //P0, boost
-  {26, 3, 14.0, 1.0625, 39}, //P1, normal
-  {23, 3, 13.0, 1.025, 42},
-  {20, 3, 12.0, 0.9875, 45},
-  {17, 3, 11.0, 0.975, 46},
-  {14, 3, 10.0, 0.9625, 47},
-  {11, 3, 9.0, 0.95, 48},
-  {16, 4, 8.0, 0.925, 50} //P7, normal
+  {30, 2, 23.0, 1.3250, 18, 0xc0010064, 0x8000017d, 0x000025e2}, //P0, boost
+  {26, 3, 14.0, 1.0625, 39, 0xc0010065, 0x80000140, 0x00004fa3}, //P1, normal
+  {23, 3, 13.0, 1.0250, 42, 0xc0010066, 0x80000137, 0x00005573},
+  {20, 3, 12.0, 0.9875, 45, 0xc0010067, 0x80000132, 0x00005b43},
+  {17, 3, 11.0, 0.9750, 46, 0xc0010068, 0x8000012e, 0x00005d13},
+  {14, 3, 10.0, 0.9625, 47, 0xc0010069, 0x8000012b, 0x00005ee3},
+  {11, 3,  9.0, 0.9500, 48, 0xc001006a, 0x80000127, 0x000060b3},
+  {16, 4,  8.0, 0.9250, 50, 0xc001006b, 0x80000125, 0x00006504}  //P7, normal
 };
 //bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
 const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
-  {6, 0, 22.0, 1.0875, 37}, //P0, boost
-  {4, 0, 20.0, 1.0250, 42}, //P1, normal
-  {2, 0, 18.0, 0.9625, 47},
-  {1, 0, 17.0, 0.9375, 49},
-  {0, 0, 16.0, 0.9, 52},
-  {5, 1, 14.0, 0.8625, 55},
-  {2, 1, 12.0, 0.8125, 59},
-  {0, 2, 8.0, 0.7125, 67} //P7, normal
+  {6, 0, 22.0, 1.0875, 37, 0xc0010064, 0x8000017d, 0x00004a60}, //P0, boost
+  {4, 0, 20.0, 1.0250, 42, 0xc0010065, 0x80000140, 0x00005440}, //P1, normal
+  {2, 0, 18.0, 0.9625, 47, 0xc0010066, 0x80000137, 0x00005e20},
+  {1, 0, 17.0, 0.9375, 49, 0xc0010067, 0x80000132, 0x00006210},
+  {0, 0, 16.0, 0.9000, 52, 0xc0010068, 0x8000012e, 0x00006800},
+  {5, 1, 14.0, 0.8625, 55, 0xc0010069, 0x8000012b, 0x00006e51},
+  {2, 1, 12.0, 0.8125, 59, 0xc001006a, 0x80000127, 0x00007621},
+  {0, 2,  8.0, 0.7125, 67, 0xc001006b, 0x80000125, 0x00008602}  //P7, normal
 };
 
 static u32 __init GetBits(u64 value, unsigned char offset, unsigned char numBits) {
@@ -633,6 +636,8 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
   const u32 data_hi=(u32)(value >> 32);
   int firsterr = 0;
   int err;
+  int tmp;
+  bool safe=false;
   u32 cpucore;
   if (setup_max_cpus < NUMCPUCORES) {
     printka("Unexpected number of cores. Expected: NUMCPUCORES=%d. Found: setup_max_cpus=%d. Continuing.", NUMCPUCORES, setup_max_cpus);
@@ -643,6 +648,27 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
         regIndex,
         data_hi,
         data_lo);
+    //safety check:
+//    BUG_ON(allpsi[);
+    safe=false;
+    for (tmp=0; 0 < NUMPSTATES; tmp++) {
+      if (
+          ((allpsi[tmp].regIndex == regIndex) && (allpsi[tmp].datahi == data_hi) && (allpsi[tmp].datalo == data_lo))
+          ((bootdefaults_psi[tmp].regIndex == regIndex) && (bootdefaults_psi[tmp].datahi == data_hi) && (bootdefaults_psi[tmp].datalo == data_lo))
+          ||
+          ( (0xc0010062 == regIndex) && (0 == data_hi) && (data_lo>=0) && (data_lo <=6) ) //change current pstate = allowed
+         )
+      {
+        safe=true;
+        break;
+      }
+    }
+    if (!safe) {
+      printka("safetyfail\n",
+          "    !! Wrmsr: not allowing msr write with those values. (this was meant to indicate a bug in code)\n");
+      return 1;
+    }
+    BUGIFNOT(safe);
     err = wrmsr_safe_on_cpu(cpucore, regIndex, data_lo, data_hi);
     if (err) {
       printka("failed.\n"
