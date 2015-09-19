@@ -542,9 +542,10 @@ static int __init CPUunderclocking(char *str)
 #define CPUUSTR "CPUunderclocking"
 early_param(CPUUSTR, CPUunderclocking);
 //redefinging because this patch is supposed to be independend of the EHCI-fix one.
-#define _prik2(fmt, a...) printk(fmt " {%s %s:%i}", ##a, __func__, __FILE__, __LINE__ )
+#define _prik2(fmt, a...) printk(fmt " {%s %s:%i}\n", ##a, __func__, __FILE__, __LINE__ )
 //KERN_* from: include/linux/kern_levels.h
 #define _prik3(type, fmt, a...) _prik2( type CPUUSTR ": " fmt, ##a)
+//NOTE: do not include your own \n when using these:
 #define printka(fmt, a...) _prik3(KERN_ALERT, fmt, ##a)
 #define printkw(fmt, a...) _prik3(KERN_WARNING, fmt, ##a)
 #define printkn(fmt, a...) _prik3(KERN_NOTICE, fmt, ##a)
@@ -641,11 +642,11 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
   int tmp;
   bool safe=false;
   u32 cpucore;
-  if (setup_max_cpus < NUMCPUCORES) {
+  if (setup_max_cpus < NUMCPUCORES) {// setup_max_cpus is 64
     printka("Unexpected number of cores. Expected: NUMCPUCORES=%d. Found: setup_max_cpus=%d. Continuing.", NUMCPUCORES, setup_max_cpus);
   }
   for (cpucore = 0; cpucore < NUMCPUCORES; cpucore++) {
-    printkd("  !! Wrmsr: core:%d/%d idx:%x valx:%08x%08x... ",
+    printkd("  !! Wrmsr(before write): core:%d/%d idx:%x valx:%08x%08x... ",
         cpucore, setup_max_cpus,
         regIndex,
         data_hi,
@@ -667,15 +668,17 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
       }
     }
     if (!safe) {
-      printka("safetyfail\n"
-          "    !! Wrmsr: not allowing msr write with those values. (this was meant to indicate a bug in code)\n");
+      printka("    !! Wrmsr(before write): not allowing msr write with those values. (this was meant to indicate a bug in code) core:%d/%d idx:%x valx:%08x%08x... ",
+          cpucore, setup_max_cpus,
+          regIndex,
+          data_hi,
+          data_lo);
       return 1;
     }
     BUGIFNOT(safe);
     err = wrmsr_safe_on_cpu(cpucore, regIndex, data_lo, data_hi);
     if (err) {
-      printka("failed.\n"
-            "    !! Wrmsr: failed, err:%d on core:%d/%d idx:%x valx:%08x%08x. Continuing.\n",
+      printka("    !! Wrmsr(after write): failed, err:%d on core:%d/%d idx:%x valx:%08x%08x. Continuing.",
           err,
           cpucore, setup_max_cpus,
           regIndex,
@@ -686,7 +689,7 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
         firsterr=err;
       }
     }else{
-      printkd("done.\n");
+      printkd("    !! Wrmsr(after write): done.");
     }
   }
   return firsterr;//0 on success
@@ -704,13 +707,12 @@ static u64 __init Rdmsr(const u32 regIndex) {
   }
 
   for (cpucore = 0; cpucore < NUMCPUCORES; cpucore++) {
-    printkd("  !! Rdmsr: core:%d idx:%x ... %lu bytes ... ", cpucore, regIndex, sizeof(result[cpucore]));//8 bytes
+    printkd("  !! Rdmsr(1of2): core:%d idx:%x ...", cpucore, regIndex);
     data_lo=0;//not needed to init them, but just in case there's an err, they shouldn't be equal to prev core's values!
     data_hi=0;
     err = rdmsr_safe_on_cpu(cpucore, regIndex, &data_lo, &data_hi);
     if (err) {
-      printka("failed.\n"
-            "    !! Rdmsr: failed, err:%d on core:%d/%d idx:%x resultx:%08x%08x. Continuing.\n",
+      printka("    !! Rdmsr(2of2): failed, err:%d on core:%d/%d idx:%x resultx:%08x%08x. Continuing.",
           err,
           cpucore, setup_max_cpus,
           regIndex,
@@ -721,11 +723,12 @@ static u64 __init Rdmsr(const u32 regIndex) {
       }
     }else {
       result[cpucore]=(u64)( ((u64)data_hi << 32) + data_lo);
-      printkd("done. (resultx==%08x%08x)\n", (u32)(result[cpucore] >> 32), (u32)(result[cpucore] & 0xFFFFFFFF));//just in case unsigned int gets more than 32 bits for wtw reason in the future! leave the & there.
-      if (cpucore>0) {
+      printkd("    !! Rdmsr(2of2): core:%d idx:%x done. (resultx==%08x%08x hi:%08x lo:%08x)", cpucore, regIndex, (u32)(result[cpucore] >> 32), (u32)(result[cpucore] & 0xFFFFFFFF), data_hi, data_lo);//just in case unsigned int gets more than 32 bits for wtw reason in the future! leave the & there.
+      BUG_ON((u32)(result[cpucore] >> 32) != data_hi);
+      BUG_ON((u32)(result[cpucore] & 0xFFFFFFFF) != data_lo);
+      if (cpucore > 0) {
         if (result[cpucore-1] != result[cpucore]) {
-          printkw("    !! Rdmsr: different results for cores(this is expected to be so, depending on load)\n");
-          printkw("    !! core[%d]  != core[%d]\n", cpucore-1, cpucore);
+          printkw("    !! Rdmsr(3of2): different results for cores(this is expected to be so, depending on load) core[%d] != core[%d] (see above KERN_DEBUG msgs)", cpucore-1, cpucore);
         }
       }
     }
@@ -833,7 +836,7 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
   VID = GetBits(msr, 9, 7);
 
 //  printkd("!! Write PState(1of2) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
-  printkd("!! Write(1of2) PState%d read : fid:%d did:%d vid:%d Multi:N/A\n", 
+  printkd("!! Write(1of3) PState%d read : fid:%d did:%d vid:%d Multi:N/A", 
       numpstate, fidbefore, didbefore, VID);//FIXME:
 
   BUGIFNOT(info->multi >= CPUMINMULTIunderclocked);//FIXME: smp.c:809: undefined reference to `__gedf2'  due to double no doubt!
@@ -851,15 +854,15 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
     BUGIFNOT(info->VID <= CPUMINVIDunderclocked);
     msr=SetBits(msr, info->VID, 9, 7);
 
-    printkd("!! Write(2of2) PState%d write:%d did:%d vid:%d "//"(multi:%02.2f)"
+    printkd("!! Write(2of3) PState%d write:%d did:%d vid:%d "//"(multi:%02.2f)"
         "(multi:%d)"
-        " ... "
+        " ..."
         ,numpstate, fid, did, info->VID, info->multi);
     Wrmsr(regIndex, msr);
-    printkd("done.\n");
+    printkd("!! Write(3of3) PState%d done.", numpstate);
     return true;
   } else {
-    printkd("!! Write(2of2) PState%d no write needed: same values. Done.\n", numpstate);
+    printkd("!! Write(3of3) PState%d no write needed: same values. Done.", numpstate);
     return false;
   }
 }
@@ -897,7 +900,7 @@ void __init SetCurrentPState(int numpstate) {
     msr = Rdmsr(regIndex);
     i = GetBits(msr, 0, 16);
     j = GetBits(msr, 0, 64);
-    printkd("i(16bits)=%d j(64bits)=%d wantedpstate=%d\n",i,j,numpstate);//gets to only be printed once, because it's already set by the time this gets reached, apparently.
+    printkd("i(16bits)=%d j(64bits)=%d wantedpstate=%d",i,j,numpstate);//gets to only be printed once, because it's already set by the time this gets reached, apparently.
   } while (i != numpstate);
 }
 
@@ -911,7 +914,7 @@ static void __init apply_underclocking_if_needed(void)
   int lastpstate;
   int tempPState;
 
-  printki("activating(?)=%d\n", activate_underclocking);
+  printki("activating(?)=%d", activate_underclocking);
   if (activate_underclocking) {
     printki("activating...");
     for (i = 0; i < NUMPSTATES; i++) {
@@ -919,7 +922,7 @@ static void __init apply_underclocking_if_needed(void)
     }
 
     if (modded) {
-      printkd("Switching to another p-state temporarily so to ensure that the current one uses newly applied values\n");
+      printkd("Switching to another p-state temporarily so to ensure that the current one uses newly applied values");
 
       currentPState = GetCurrentPState();
 
@@ -927,14 +930,14 @@ static void __init apply_underclocking_if_needed(void)
       lastpstate= NUMPSTATES - 1;//aka the lowest speed one
       tempPState = (currentPState == lastpstate ? 0 : lastpstate);
       //    const int tempPState = ((currentPState + 1) % NUMPSTATES);//some cores may already be at current+1 pstate; so don't use this variant
-      printkd("!! currentpstate:%d temppstate:%d\n", currentPState, tempPState);
+      printkd("!! currentpstate:%d temppstate:%d", currentPState, tempPState);
       SetCurrentPState(tempPState);
-      printkd("!! currentpstate:%d\n", GetCurrentPState());
+      printkd("!! currentpstate:%d", GetCurrentPState());
       SetCurrentPState(currentPState);
-      printkd("!! currentpstate:%d\n", GetCurrentPState());
+      printkd("!! currentpstate:%d", GetCurrentPState());
     }
   }
-  printki("done.\n");
+  printki("done.");
 }
 
 /* this is hard limit */
