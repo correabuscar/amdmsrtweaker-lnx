@@ -654,7 +654,7 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
     //safety check:
 //    BUG_ON(allpsi[);
     safe=false;
-    for (tmp=0; 0 < NUMPSTATES; tmp++) {
+    for (tmp=0; tmp < NUMPSTATES; tmp++) {
       if (
           ((allpsi[tmp].regIndex == regIndex) && (allpsi[tmp].datahi == data_hi) && (allpsi[tmp].datalo == data_lo))
           ||
@@ -735,7 +735,7 @@ static u64 __init Rdmsr(const u32 regIndex) {
       }
       //validate msr reads: they must be within range (otherwise we're probably inside virtualbox and we shouldn't get to Wrmsr later)
       safe=false;
-      for (tmp=0; 0 < NUMPSTATES; tmp++) {
+      for (tmp=0; tmp < NUMPSTATES; tmp++) {
         if (
             ((allpsi[tmp].regIndex == regIndex) && (allpsi[tmp].datahi == data_hi) && (allpsi[tmp].datalo == data_lo))
             ||
