@@ -646,7 +646,7 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
     printka("Unexpected number of cores. Expected: NUMCPUCORES=%d. Found: setup_max_cpus=%d. Continuing.", NUMCPUCORES, setup_max_cpus);
   }
   for (cpucore = 0; cpucore < NUMCPUCORES; cpucore++) {
-    printkd("  !! Wrmsr(before write): core:%d/%d idx:%x valx:%08x%08x... ",
+    printkd("  !! Wrmsr(before write): core:%d/%d idx:%x valx:%08x%08x ... ",
         cpucore, setup_max_cpus,
         regIndex,
         data_hi,
@@ -668,7 +668,7 @@ static int __init Wrmsr(const u32 regIndex, const u64 value) {
       }
     }
     if (!safe) {
-      printka("    !! Wrmsr(before write): not allowing msr write with those values. (this was meant to indicate a bug in code) core:%d/%d idx:%x valx:%08x%08x... ",
+      printka("    !! Wrmsr(before write): not allowing msr write with those values. (this was meant to indicate a bug in code) core:%d/%d idx:%x valx:%08x%08x ... ",
           cpucore, setup_max_cpus,
           regIndex,
           data_hi,
@@ -745,7 +745,7 @@ static u64 __init Rdmsr(const u32 regIndex) {
             ||
             ( (0xc0010063 == regIndex) && (0 == data_hi) && (data_lo>=0) && (data_lo <=6) ) //change current pstate = allowed (0..6 only)
             ||
-            ( (0xc0010071 == regIndex) && (0 == data_hi) && (data_lo>=0) && (data_lo<=7) )//0..7 here
+            ( (0xc0010071 == regIndex) && (result[cpucore] != 0))//eg. 003160975a078602 this is definitely not 0 here! unless maybe inside virtualbox? if I remember correctly
            )
         {
           safe=true;
@@ -753,7 +753,7 @@ static u64 __init Rdmsr(const u32 regIndex) {
         }
       }
       if (!safe) {
-        printka("    !! Rdmsr(after read): not allowing msr read with those values. (this was meant to indicate an unexpected case scenario, eg. running inside virtualbox?) core:%d/%d idx:%x valx:%08x%08x... ",
+        printka("    !! Rdmsr(after read): not allowing msr read with those values. (this was meant to indicate an unexpected case scenario, eg. running inside virtualbox?) core:%d/%d idx:%x valx:%08x%08x ... ",
             cpucore, setup_max_cpus,
             regIndex,
             data_hi,

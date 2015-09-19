@@ -1,8 +1,8 @@
 this was applied on top of kernel 4.2.rc4.r0.gcbfe8fa-1
 and 4.3.rc1.r217.g00ade1f-1
 
---- kernel/smp.c.orig	2015-09-19 15:15:22.569242054 +0200
-+++ kernel/smp.c	2015-09-19 21:29:05.785225417 +0200
+--- kernel/smp.c.orig	2015-09-19 21:50:21.820631272 +0200
++++ kernel/smp.c	2015-09-19 22:06:30.791114147 +0200
 @@ -507,6 +507,9 @@ EXPORT_SYMBOL(smp_call_function);
  unsigned int setup_max_cpus = NR_CPUS;
  EXPORT_SYMBOL(setup_max_cpus);
@@ -129,7 +129,7 @@ and 4.3.rc1.r217.g00ade1f-1
 +    printka("Unexpected number of cores. Expected: NUMCPUCORES=%d. Found: setup_max_cpus=%d. Continuing.", NUMCPUCORES, setup_max_cpus);
 +  }
 +  for (cpucore = 0; cpucore < NUMCPUCORES; cpucore++) {
-+    printkd("  !! Wrmsr(before write): core:%d/%d idx:%x valx:%08x%08x... ",
++    printkd("  !! Wrmsr(before write): core:%d/%d idx:%x valx:%08x%08x ... ",
 +        cpucore, setup_max_cpus,
 +        regIndex,
 +        data_hi,
@@ -137,7 +137,7 @@ and 4.3.rc1.r217.g00ade1f-1
 +    //safety check:
 +//    BUG_ON(allpsi[);
 +    safe=false;
-+    for (tmp=0; 0 < NUMPSTATES; tmp++) {
++    for (tmp=0; tmp < NUMPSTATES; tmp++) {
 +      if (
 +          ((allpsi[tmp].regIndex == regIndex) && (allpsi[tmp].datahi == data_hi) && (allpsi[tmp].datalo == data_lo))
 +          ||
@@ -151,7 +151,7 @@ and 4.3.rc1.r217.g00ade1f-1
 +      }
 +    }
 +    if (!safe) {
-+      printka("    !! Wrmsr(before write): not allowing msr write with those values. (this was meant to indicate a bug in code) core:%d/%d idx:%x valx:%08x%08x... ",
++      printka("    !! Wrmsr(before write): not allowing msr write with those values. (this was meant to indicate a bug in code) core:%d/%d idx:%x valx:%08x%08x ... ",
 +          cpucore, setup_max_cpus,
 +          regIndex,
 +          data_hi,
@@ -218,7 +218,7 @@ and 4.3.rc1.r217.g00ade1f-1
 +      }
 +      //validate msr reads: they must be within range (otherwise we're probably inside virtualbox and we shouldn't get to Wrmsr later)
 +      safe=false;
-+      for (tmp=0; 0 < NUMPSTATES; tmp++) {
++      for (tmp=0; tmp < NUMPSTATES; tmp++) {
 +        if (
 +            ((allpsi[tmp].regIndex == regIndex) && (allpsi[tmp].datahi == data_hi) && (allpsi[tmp].datalo == data_lo))
 +            ||
@@ -228,7 +228,7 @@ and 4.3.rc1.r217.g00ade1f-1
 +            ||
 +            ( (0xc0010063 == regIndex) && (0 == data_hi) && (data_lo>=0) && (data_lo <=6) ) //change current pstate = allowed (0..6 only)
 +            ||
-+            ( (0xc0010071 == regIndex) && (0 == data_hi) && (data_lo>=0) && (data_lo<=7) )//0..7 here
++            ( (0xc0010071 == regIndex) && (result[cpucore] != 0))//eg. 003160975a078602 this is definitely not 0 here! unless maybe inside virtualbox? if I remember correctly
 +           )
 +        {
 +          safe=true;
@@ -236,7 +236,7 @@ and 4.3.rc1.r217.g00ade1f-1
 +        }
 +      }
 +      if (!safe) {
-+        printka("    !! Rdmsr(after read): not allowing msr read with those values. (this was meant to indicate an unexpected case scenario, eg. running inside virtualbox?) core:%d/%d idx:%x valx:%08x%08x... ",
++        printka("    !! Rdmsr(after read): not allowing msr read with those values. (this was meant to indicate an unexpected case scenario, eg. running inside virtualbox?) core:%d/%d idx:%x valx:%08x%08x ... ",
 +            cpucore, setup_max_cpus,
 +            regIndex,
 +            data_hi,
