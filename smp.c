@@ -821,6 +821,7 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
 //  double Multi;
   int VID;
   int fid, did;
+  bool ret;
 
   BUG_ON(NULL == info);
   BUGIFNOT(numpstate >=0);//done: BUG_ON is the reverse of assert!!
@@ -858,8 +859,8 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
         "(multi:%d)"
         " ..."
         ,numpstate, fid, did, info->VID, info->multi);
-    Wrmsr(regIndex, msr);
-    printkd("!! Write(3of3) PState%d done.", numpstate);
+    ret=Wrmsr(regIndex, msr);
+    printkd("!! Write(3of3) PState%d done. status:%d (0=success)", numpstate, ret);
     return true;
   } else {
     printkd("!! Write(3of3) PState%d no write needed: same values. Done.", numpstate);
@@ -878,6 +879,7 @@ void __init SetCurrentPState(int numpstate) {
   u64 msr;
   int i=-1;
   int j=-1;
+  int maxtries=100;
 
   BUG_ON(numpstate < 0);
   BUG_ON(numpstate >= NUMPSTATES);
@@ -892,16 +894,21 @@ void __init SetCurrentPState(int numpstate) {
 
   msr = Rdmsr(regIndex);
   msr=SetBits(msr, numpstate, 0, 3);
-  Wrmsr(regIndex, msr);
-
-  //Next, wait for the new pstate to be set, code from: https://chromium.googlesource.com/chromiumos/third_party/coreboot/+/c02b4fc9db3c3c1e263027382697b566127f66bb/src/cpu/amd/model_10xxx/fidvid.c line 367
-  regIndex=0xC0010063;
-  do {
-    msr = Rdmsr(regIndex);
-    i = GetBits(msr, 0, 16);
-    j = GetBits(msr, 0, 64);
-    printkd("i(16bits)=%d j(64bits)=%d wantedpstate=%d",i,j,numpstate);//gets to only be printed once, because it's already set by the time this gets reached, apparently.
-  } while (i != numpstate);
+  if (0 == Wrmsr(regIndex, msr)) {//written ... (0=success)
+    //Next, wait for the new pstate to be set, code from: https://chromium.googlesource.com/chromiumos/third_party/coreboot/+/c02b4fc9db3c3c1e263027382697b566127f66bb/src/cpu/amd/model_10xxx/fidvid.c line 367
+    regIndex=0xC0010063;
+    do {
+      msr = Rdmsr(regIndex);
+      i = GetBits(msr, 0, 16);
+      j = GetBits(msr, 0, 64);
+      printkd("i(16bits)=%d j(64bits)=%d wantedpstate=%d tries left:%d",i,j,numpstate, maxtries);//gets to only be printed once, because it's already set by the time this gets reached, apparently.
+    } while ((i != numpstate)&&(--maxtries > 0));
+    if (maxtries<=0) {
+      printka("maxtries exhausted, giving up...");
+    }
+  }else{
+    printkd("Current PState was not set due to Wrmsr having failed.");
+  }
 }
 
 
