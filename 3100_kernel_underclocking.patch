@@ -2,7 +2,7 @@ this was applied on top of kernel 4.2.rc4.r0.gcbfe8fa-1
 and 4.3.rc1.r217.g00ade1f-1
 
 --- kernel/smp.c.orig	2015-09-19 21:50:21.820631272 +0200
-+++ kernel/smp.c	2015-09-19 22:06:30.791114147 +0200
++++ kernel/smp.c	2015-09-20 00:02:22.979396879 +0200
 @@ -507,6 +507,9 @@ EXPORT_SYMBOL(smp_call_function);
  unsigned int setup_max_cpus = NR_CPUS;
  EXPORT_SYMBOL(setup_max_cpus);
@@ -353,7 +353,7 @@ and 4.3.rc1.r217.g00ade1f-1
 +      numpstate, fidbefore, didbefore, VID);//FIXME:
 +
 +  if (0 == msr) {
-+    printkd("!! Write(1of3 part2) PState%d msr read failed to read expected values - probably due to being inside virtualbox. Aborting write.", numpstate);
++    printka("!! Write(1of3 part2) PState%d msr read failed to read expected values - probably due to being inside virtualbox. Aborting write.", numpstate);
 +    return false;
 +  }
 +

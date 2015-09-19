@@ -870,7 +870,7 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
       numpstate, fidbefore, didbefore, VID);//FIXME:
 
   if (0 == msr) {
-    printkd("!! Write(1of3 part2) PState%d msr read failed to read expected values - probably due to being inside virtualbox. Aborting write.", numpstate);
+    printka("!! Write(1of3 part2) PState%d msr read failed to read expected values - probably due to being inside virtualbox. Aborting write.", numpstate);
     return false;
   }
 
