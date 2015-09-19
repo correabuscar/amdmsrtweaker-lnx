@@ -18,7 +18,9 @@ cmd='CPUunderclocking'
 #fi
 if ! grep --color=always -i "$cmd" /proc/cmdline; then
   echo "!! CPU underclocking is not enabled (lacks kernel cmdline '$cmd')"
-  exit 0
+  if test "0$@" != "0force"; then
+    exit 0
+  fi
 fi
 scriptdir="$(dirname "$0")"
 
