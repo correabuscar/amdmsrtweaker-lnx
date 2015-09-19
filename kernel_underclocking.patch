@@ -1,5 +1,5 @@
 diff --git a/kernel/smp.c b/kernel/smp.c
-index 0e3c569..fc471d1 100644
+index 0e3c569..75f6049 100644
 --- a/kernel/smp.c
 +++ b/kernel/smp.c
 @@ -507,6 +507,9 @@ EXPORT_SYMBOL(smp_call_function);
@@ -12,7 +12,7 @@ index 0e3c569..fc471d1 100644
  
  /*
   * Setup routine for controlling SMP activation
-@@ -531,6 +534,407 @@ static int __init nosmp(char *str)
+@@ -531,6 +534,409 @@ static int __init nosmp(char *str)
  
  early_param("nosmp", nosmp);
  
@@ -21,15 +21,17 @@ index 0e3c569..fc471d1 100644
 +	activate_underclocking = true;
 +	return 0;
 +}
-+early_param("CPUunderclocking", CPUunderclocking);
++#define CPUUSTR "CPUunderclocking"
++early_param(CPUUSTR, CPUunderclocking);
 +//redefinging because this patch is supposed to be independend of the EHCI-fix one.
-+#define _prik2(fmt, a...) printk("CPUunderclocking: " fmt " {%s %s:%i}", ##a, __func__, __FILE__, __LINE__ )
++#define _prik2(fmt, a...) printk(fmt " {%s %s:%i}", ##a, __func__, __FILE__, __LINE__ )
 +//KERN_* from: include/linux/kern_levels.h
-+#define printka(fmt, a...) _prik2(KERN_ALERT fmt, ##a)
-+#define printkw(fmt, a...) _prik2(KERN_WARNING fmt, ##a)
-+#define printkn(fmt, a...) _prik2(KERN_NOTICE fmt, ##a)
-+#define printki(fmt, a...) _prik2(KERN_INFO fmt, ##a)
-+#define printkd(fmt, a...) _prik2(KERN_DEBUG fmt, ##a)
++#define _prik3(type, fmt, a...) _prik2( type CPUUSTR ": " fmt, ##a)
++#define printka(fmt, a...) _prik3(KERN_ALERT, fmt, ##a)
++#define printkw(fmt, a...) _prik3(KERN_WARNING, fmt, ##a)
++#define printkn(fmt, a...) _prik3(KERN_NOTICE, fmt, ##a)
++#define printki(fmt, a...) _prik3(KERN_INFO, fmt, ##a)
++#define printkd(fmt, a...) _prik3(KERN_DEBUG, fmt, ##a)
 +#define BUGIFNOT(a) BUG_ON(!(a))
 +
 +// special divisors for family 0x12 (aka 18 in decimal)
@@ -420,7 +422,7 @@ index 0e3c569..fc471d1 100644
  /* this is hard limit */
  static int __init nrcpus(char *str)
  {
-@@ -905,6 +1309,7 @@ void __init smp_init(void)
+@@ -905,6 +1311,7 @@ void __init smp_init(void)
  
  	/* Any cleanup work */
  	smp_announce();

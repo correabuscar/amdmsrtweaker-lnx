@@ -539,15 +539,17 @@ static int __init CPUunderclocking(char *str)
 	activate_underclocking = true;
 	return 0;
 }
-early_param("CPUunderclocking", CPUunderclocking);
+#define CPUUSTR "CPUunderclocking"
+early_param(CPUUSTR, CPUunderclocking);
 //redefinging because this patch is supposed to be independend of the EHCI-fix one.
-#define _prik2(fmt, a...) printk("CPUunderclocking: " fmt " {%s %s:%i}", ##a, __func__, __FILE__, __LINE__ )
+#define _prik2(fmt, a...) printk(fmt " {%s %s:%i}", ##a, __func__, __FILE__, __LINE__ )
 //KERN_* from: include/linux/kern_levels.h
-#define printka(fmt, a...) _prik2(KERN_ALERT fmt, ##a)
-#define printkw(fmt, a...) _prik2(KERN_WARNING fmt, ##a)
-#define printkn(fmt, a...) _prik2(KERN_NOTICE fmt, ##a)
-#define printki(fmt, a...) _prik2(KERN_INFO fmt, ##a)
-#define printkd(fmt, a...) _prik2(KERN_DEBUG fmt, ##a)
+#define _prik3(type, fmt, a...) _prik2( type CPUUSTR ": " fmt, ##a)
+#define printka(fmt, a...) _prik3(KERN_ALERT, fmt, ##a)
+#define printkw(fmt, a...) _prik3(KERN_WARNING, fmt, ##a)
+#define printkn(fmt, a...) _prik3(KERN_NOTICE, fmt, ##a)
+#define printki(fmt, a...) _prik3(KERN_INFO, fmt, ##a)
+#define printkd(fmt, a...) _prik3(KERN_DEBUG, fmt, ##a)
 #define BUGIFNOT(a) BUG_ON(!(a))
 
 // special divisors for family 0x12 (aka 18 in decimal)
