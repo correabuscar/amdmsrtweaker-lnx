@@ -702,6 +702,8 @@ static u64 __init Rdmsr(const u32 regIndex) {
   u32 data_lo;
   u32 data_hi;
   int cpucore;//for the 'for'
+  int tmp;
+  bool safe=false;
   if (setup_max_cpus < NUMCPUCORES) {
     printka("Unexpected number of cores. Expected: NUMCPUCORES=%d. Found: setup_max_cpus=%d. Continuing.", NUMCPUCORES, setup_max_cpus);
   }
@@ -731,6 +733,34 @@ static u64 __init Rdmsr(const u32 regIndex) {
           printkw("    !! Rdmsr(3of2): different results for cores(this is expected to be so, depending on load) core[%d] != core[%d] (see above KERN_DEBUG msgs)", cpucore-1, cpucore);
         }
       }
+      //validate msr reads: they must be within range (otherwise we're probably inside virtualbox and we shouldn't get to Wrmsr later)
+      safe=false;
+      for (tmp=0; 0 < NUMPSTATES; tmp++) {
+        if (
+            ((allpsi[tmp].regIndex == regIndex) && (allpsi[tmp].datahi == data_hi) && (allpsi[tmp].datalo == data_lo))
+            ||
+            ((bootdefaults_psi[tmp].regIndex == regIndex) && (bootdefaults_psi[tmp].datahi == data_hi) && (bootdefaults_psi[tmp].datalo == data_lo))
+            ||
+            ( (0xc0010062 == regIndex) && (0 == data_hi) && (data_lo>=0) && (data_lo <=6) ) //change current pstate = allowed  (0..6 only)
+            ||
+            ( (0xc0010063 == regIndex) && (0 == data_hi) && (data_lo>=0) && (data_lo <=6) ) //change current pstate = allowed (0..6 only)
+            ||
+            ( (0xc0010071 == regIndex) && (0 == data_hi) && (data_lo>=0) && (data_lo<=7) )//0..7 here
+           )
+        {
+          safe=true;
+          break;
+        }
+      }
+      if (!safe) {
+        printka("    !! Rdmsr(after read): not allowing msr read with those values. (this was meant to indicate an unexpected case scenario, eg. running inside virtualbox?) core:%d/%d idx:%x valx:%08x%08x... ",
+            cpucore, setup_max_cpus,
+            regIndex,
+            data_hi,
+            data_lo);
+        return 0;//0 on error
+      }
+      BUGIFNOT(safe);
     }
   }
 
@@ -830,7 +860,6 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
   regIndex = 0xc0010064 + numpstate;//kernel/smp.c:788:12: error: assignment of read-only variable ‘regIndex’
   //XXX: see? that's what ISO C90 does, prevents me from const-ifying a var if I've to do an assert/BUG_ON before assigning its initial value! AND makes me put vars at top which I should otherwise not have access to until later on in code, thus allowing me the opportunity to typo or misused a different but similarly names var and thus introduce a bug.
   msr = Rdmsr(regIndex);
-
   fidbefore = GetBits(msr, 4, 5);
   didbefore = GetBits(msr, 0, 4);
 //  multifromfidndid(&Multi, fidbefore, didbefore); FIXME: find a way to make double work, or do fixed-point arithmethic(fpa) somehow
@@ -839,6 +868,14 @@ static bool __init WritePState(const u32 numpstate, const struct PStateInfo *inf
 //  printkd("!! Write PState(1of2) read : fid:%d did:%d vid:%d Multi:%f\n", fidbefore, didbefore, VID, Multi);
   printkd("!! Write(1of3) PState%d read : fid:%d did:%d vid:%d Multi:N/A", 
       numpstate, fidbefore, didbefore, VID);//FIXME:
+
+  if (0 == msr) {
+    printkd("!! Write(1of3 part2) PState%d msr read failed to read expected values - probably due to being inside virtualbox. Aborting write.", numpstate);
+    return false;
+  }
+
+
+  BUG_ON(0 == msr);
 
   BUGIFNOT(info->multi >= CPUMINMULTIunderclocked);//FIXME: smp.c:809: undefined reference to `__gedf2'  due to double no doubt!
   BUGIFNOT(info->multi <= CPUMAXMULTIunderclocked);
@@ -879,7 +916,7 @@ void __init SetCurrentPState(int numpstate) {
   u64 msr;
   int i=-1;
   int j=-1;
-  int maxtries=100;
+  int maxtries=10;//10 is plenty!
 
   BUG_ON(numpstate < 0);
   BUG_ON(numpstate >= NUMPSTATES);
@@ -892,17 +929,18 @@ void __init SetCurrentPState(int numpstate) {
   if (numpstate < 0)
     numpstate = 0;
 
-  msr = Rdmsr(regIndex);
+  msr = Rdmsr(regIndex);//returns 0..7? or 0..6 unsure
   msr=SetBits(msr, numpstate, 0, 3);
   if (0 == Wrmsr(regIndex, msr)) {//written ... (0=success)
     //Next, wait for the new pstate to be set, code from: https://chromium.googlesource.com/chromiumos/third_party/coreboot/+/c02b4fc9db3c3c1e263027382697b566127f66bb/src/cpu/amd/model_10xxx/fidvid.c line 367
-    regIndex=0xC0010063;
+    regIndex=0xc0010063;
     do {
+      maxtries--;
       msr = Rdmsr(regIndex);
       i = GetBits(msr, 0, 16);
       j = GetBits(msr, 0, 64);
-      printkd("i(16bits)=%d j(64bits)=%d wantedpstate=%d tries left:%d",i,j,numpstate, maxtries);//gets to only be printed once, because it's already set by the time this gets reached, apparently.
-    } while ((i != numpstate)&&(--maxtries > 0));
+      printkd("Waiting for PState to settle at wanted. Current: i(16bits)=%d j(64bits)=%d wantedpstate=%d tries left:%d",i,j,numpstate, maxtries);//gets to only be printed once, because it's already set by the time this gets reached, apparently.
+    } while ((i != numpstate)&&(maxtries > 0));// || (0 == msr);
     if (maxtries<=0) {
       printka("maxtries exhausted, giving up...");
     }
