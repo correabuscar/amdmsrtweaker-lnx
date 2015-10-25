@@ -16,7 +16,7 @@ cmd='CPUunderclocking'
 #  echo "!! CPU underclocking disabled due to kernel cmdline '$cmd'"
 #  exit 0
 #fi
-if ! grep --color=always -i "$cmd" /proc/cmdline; then
+if ! $sudo grep --color=always -i "$cmd" /proc/cmdline; then
   echo "!! CPU underclocking is not enabled (lacks kernel cmdline '$cmd')"
   if test "0$@" != "0force"; then
     exit 0
