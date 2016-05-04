@@ -5,9 +5,10 @@ also tested on 4.5.0-rc7
 
 This patch will undervolt and at the same time overclock my CPU on the Z575 laptop
 
-location: https://github.com/respeccing/amdmsrtweaker-lnx/tree/kerneltry1
+location: https://github.com/NotaseCretagen/amdmsrtweaker-lnx/tree/kerneltry1
 
 Created by Emanuel Czirai
+re-released under UNLICENSE
 
 diff -upr a/kernel/smp.c b/kernel/smp.c
 --- a/kernel/smp.c	2015-09-19 21:50:21.820631272 +0200
