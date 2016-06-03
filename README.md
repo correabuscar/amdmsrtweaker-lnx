@@ -26,6 +26,6 @@ See the file "readme.txt" for usage examples. The program has to executed as roo
 License
 -------
 
-This was originally under GNU GPL, however my modifications/additions etc. are under UNLICENSE
+This was originally under GNU GPL, however my modifications/additions etc. are under UNLICENSE and/or CC0 (ie. public domain)
 
 
