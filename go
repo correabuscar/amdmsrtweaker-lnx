@@ -34,7 +34,7 @@ $sudo cpupower frequency-set -g conservative
 #cpufreq-set -g conservative -c 2
 #cpufreq-set -g conservative -c 3
 
-$sudo modprobe msr
+$sudo modprobe msr || $sudo insmod ./msr.ko && echo 'good module msr!'
 #$sudo modprobe cpuid
 #echo before was:
 #"${scriptdir}/amdmsrt"
