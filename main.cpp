@@ -88,11 +88,11 @@ uint64_t Rdmsr(const uint32_t regIndex) {
         pERR("Failed to read from msr device");
       }
       close(msrdev);
-      fprintf(stdout," done. (result==%"PRIu64" hex:%08x%08x)" endcolor "\n", result[i], (unsigned int)(result[i] >> 32), (unsigned int)(result[i] & 0xFFFFFFFF));//just in case unsigned int gets more than 32 bits for wtw reason in the future! leave the & there.
+      fprintf(stdout," done. (result==%" PRIu64 " hex:%08x%08x)" endcolor "\n", result[i], (unsigned int)(result[i] >> 32), (unsigned int)(result[i] & 0xFFFFFFFF));//just in case unsigned int gets more than 32 bits for wtw reason in the future! leave the & there.
       if (i>0) {
         if (result[i-1] != result[i]) {
           pERR("Rdmsr: different results for cores(this is expected to be so depending on load)");
-          fprintf(stderr,"!! core[%d]==%"PRIu64" != core[%d]==%"PRIu64"\n", i-1, result[i-1], i, result[i]);
+          fprintf(stderr,"!! core[%d]==%" PRIu64 " != core[%d]==%" PRIu64 "\n", i-1, result[i-1], i, result[i]);
         }
       }
     }
@@ -110,7 +110,7 @@ void Wrmsr(const uint32_t regIndex, const uint64_t& value) {
           exit(-1);
         }
         //fprintf(stdout,"!! Wrmsr: %s idx:%"PRIu32" val:%"PRIu64"\n", path, index, value);
-        fprintf(stdout, startPURPLEcolortext "  !! Wrmsr: %s idx:%x val:%"PRIu64" valx:%08x%08x... ", path, regIndex, value, (unsigned int)(value >> 32), (unsigned int)(value & 0xFFFFFFFF));
+        fprintf(stdout, startPURPLEcolortext "  !! Wrmsr: %s idx:%x val:%" PRIu64 " valx:%08x%08x... ", path, regIndex, value, (unsigned int)(value >> 32), (unsigned int)(value & 0xFFFFFFFF));
         int msrdev = open(path, O_WRONLY);
         if (msrdev == -1) {
             pERR("Failed to open msr device for writing");

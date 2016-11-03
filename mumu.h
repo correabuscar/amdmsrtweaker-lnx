@@ -54,12 +54,13 @@ const struct PStateInfo  __attribute__((unused)) bootdefaults_psi[NUMPSTATES]={/
 //bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
 const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
   {22.0, 1.0875, 37}, //P0, boost
+  {22.0, 1.0875, 37}, //P0, normal max #ADDED now for testing
   {20.0, 1.0250, 42}, //P1, normal
   {18.0, 0.9625, 47},
   {17.0, 0.9375, 49},
   {16.0, 0.9, 52},
   {14.0, 0.8625, 55},
-  {12.0, 0.8125, 59},
+//  {12.0, 0.8125, 59}, #REMOVED now for testing (see above added one)
   {8.0, 0.7125, 67} //P7, normal
 };
 

@@ -1,3 +1,10 @@
+
+normal undervolting+overclocking patch!
+
+tested on kernel 4.9.0-rc2-g07d9a38
+(note regIndex, datahi and datalo have to be kept in their original positions! in that array struct of allpsi, when shifting things; else crashes! due to BUGON for good reason!)
+
+
 this was applied on top of kernel 4.2.rc4.r0.gcbfe8fa-1
 and 4.3.rc1.r217.g00ade1f-1
 also tested on 4.4 and 4.5 kernels, specifically up until 4.5-rc2
@@ -8,10 +15,11 @@ This patch will undervolt and at the same time overclock my CPU on the Z575 lapt
 
 re-released under UNLICENSE
 
-diff -upr a/kernel/smp.c b/kernel/smp.c
---- a/kernel/smp.c	2015-09-19 21:50:21.820631272 +0200
-+++ b/kernel/smp.c	2015-09-20 00:02:22.979396879 +0200
-@@ -507,6 +507,9 @@ EXPORT_SYMBOL(smp_call_function);
+diff --git a/kernel/smp.c b/kernel/smp.c
+index bba3b20..b044276 100644
+--- a/kernel/smp.c
++++ b/kernel/smp.c
+@@ -484,6 +484,9 @@ EXPORT_SYMBOL(smp_call_function);
  unsigned int setup_max_cpus = NR_CPUS;
  EXPORT_SYMBOL(setup_max_cpus);
  
@@ -21,7 +29,7 @@ diff -upr a/kernel/smp.c b/kernel/smp.c
  
  /*
   * Setup routine for controlling SMP activation
-@@ -531,6 +534,457 @@ static int __init nosmp(char *str)
+@@ -508,6 +511,457 @@ static int __init nosmp(char *str)
  
  early_param("nosmp", nosmp);
  
@@ -479,7 +487,7 @@ diff -upr a/kernel/smp.c b/kernel/smp.c
  /* this is hard limit */
  static int __init nrcpus(char *str)
  {
-@@ -905,6 +1359,7 @@ void __init smp_init(void)
+@@ -566,6 +1020,7 @@ void __init smp_init(void)
  
  	/* Any cleanup work */
  	smp_announce();
