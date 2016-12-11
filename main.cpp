@@ -356,10 +356,12 @@ void showAndCheckCurrentPStateInfo() {
     }
 
     if ((voltage != bootdefaults_psi[i].strvid) && (voltage != allpsi[i].strvid)) {
+      unexpected=true;
       std::cerr << startREDcolortext << "Unexpected PState voltage " << "P"<<i<<": "<<voltage<<"V (expected "<< allpsi[i].strvid<<"V or "<<bootdefaults_psi[i].strvid<<"V)" << endcolor << endl;
     }
 
     if ((pi.VID != bootdefaults_psi[i].VID) && (pi.VID != allpsi[i].VID)) {
+      unexpected=true;
       std::cerr << startREDcolortext << "Unexpected PState vid " << "P"<<i<<": "<<pi.VID<<" (expected "<< allpsi[i].VID<<" or "<<bootdefaults_psi[i].VID<<")" << endcolor << endl;
     }
   }
