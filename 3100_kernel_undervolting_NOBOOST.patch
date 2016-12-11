@@ -110,12 +110,12 @@ index bba3b20..ca4d4f0 100644
 +//bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
 +const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
 +  {6, 0, 22.0, 1.0875, 37, 0xc0010064, 0x8000017d, 0x00004a60}, //P0, boost
-+  {6, 0, 22.0, 1.0875, 37, 0xc0010065, 0x80000140, 0x00005440}, //P1, normal MAX (equals BOOST now)
-+  {4, 0, 20.0, 1.0250, 42, 0xc0010066, 0x80000137, 0x00005e20}, //new P2, old P1, normal MAX
-+  {2, 0, 18.0, 0.9625, 47, 0xc0010067, 0x80000132, 0x00006210}, //P3
-+  {1, 0, 17.0, 0.9375, 49, 0xc0010068, 0x8000012e, 0x00006800}, //P4
-+  {0, 0, 16.0, 0.9000, 52, 0xc0010069, 0x8000012b, 0x00006e51}, //P5
-+  {5, 1, 14.0, 0.8625, 55, 0xc001006a, 0x80000127, 0x00007621}, // new P6
++  {6, 0, 22.0, 1.0875, 37, 0xc0010065, 0x80000140, 0x00004a60}, //P1, normal MAX (equals BOOST now)
++  {4, 0, 20.0, 1.0250, 42, 0xc0010066, 0x80000137, 0x00005440}, //new P2, old P1, normal MAX
++  {2, 0, 18.0, 0.9625, 47, 0xc0010067, 0x80000132, 0x00005e20}, //P3
++  {1, 0, 17.0, 0.9375, 49, 0xc0010068, 0x8000012e, 0x00006210}, //P4
++  {0, 0, 16.0, 0.9000, 52, 0xc0010069, 0x8000012b, 0x00006800}, //P5
++  {5, 1, 14.0, 0.8625, 55, 0xc001006a, 0x80000127, 0x00006e51}, // new P6
 +//  {2, 1, 12.0, 0.8125, 59, 0xc001006a, 0x80000127, 0x00007621}, old P6
 +  {0, 2,  8.0, 0.7125, 67, 0xc001006b, 0x80000125, 0x00008602}  //P7, normal
 +};
