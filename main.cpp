@@ -309,10 +309,11 @@ void PrintParams() {
   fprintf(stdout,"Hardcoded values to apply:\n");
   for (int i = 0; i < NUMPSTATES; i++) {
     assert( allpsi[i].VID/*eg. 37*/ == voltage2vid(allpsi[i].strvid /*eg. 1.0875*/));
-    fprintf(stdout,"pstate:%d multi:%02.2f vid:%d\n",// voltage:%d\n", 
+    fprintf(stdout,"pstate:%d multi:%02.2f vid:%d (voltage:%fV)\n", 
         i, 
         allpsi[i].multi,
-        allpsi[i].VID
+        allpsi[i].VID,
+        vid2voltage(allpsi[i].VID)
         );
   }
 }

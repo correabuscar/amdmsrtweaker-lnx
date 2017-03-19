@@ -7,6 +7,18 @@ if [ `id -u` != 0 ] ; then
 #    read -n 1 -s
 #    exit 1
   sudo='sudo -- '
+  if ! type sudo; then
+	  echo 'sudo is not installed!'
+	  exit 1
+  fi
+fi
+
+#test if sudo works
+if test -n "$sudo"; then
+	if ! sudo -K; then
+		echo "You probably don't have sudo rights"
+		exit 2
+	fi
 fi
 
 cmd='CPUunderclocking'
@@ -17,6 +29,7 @@ cmd='CPUunderclocking'
 #  exit 0
 #fi
 if ! $sudo grep --color=always -i "$cmd" /proc/cmdline; then
+	#sudo not really needed above, on Arch, but only on gentoo with hardened kernel!
   echo "!! CPU underclocking is not enabled (lacks kernel cmdline '$cmd')"
   if test "0$@" != "0force"; then
     exit 0
@@ -26,7 +39,7 @@ scriptdir="$(dirname "$0")"
 
 #on manjaro/arch
 #all 4 cores affected
-$sudo cpupower frequency-set -g conservative
+$sudo cpupower frequency-set --related --governor userspace --min 800MHz --max 800MHz
 #cpupower frequency-set -g ondemand
 #this was on linux mint
 #cpufreq-set -g conservative -c 0
