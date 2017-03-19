@@ -1,7 +1,8 @@
-temp is 78degC (with keyboard mounted) while compiling chromium
-this makes MAX(normal P1) equalt to BOOST state, and all others shifted down, except 8x; this means you gain 200Mhz, except when in idle state(the 8x, P7 state)
-this NOBOOST version removes the 12x step right after the 8x, and thus shifts all prev states(except 8x) down, so that BOOST STATE = MAX NORMAL STATE, effectively giving you 200Mhz more when running maxed(see cpumax script)
-tested on kernel 4.9.0-rc2-g07d9a38
+96degC and seg fault during kernel build! - DON'T do this!
+
+this makes MAX(normal P1) equalt to BOOST state of 3Ghz, and all others shifted down, except 8x; this means you gain 200Mhz+800Mhz(was 2000Mhz+1Ghz), except when in idle state(the 8x, P7 state)
+this NOBOOST version removes the 12x(ax 14x) step right after the 8x, and thus shifts all prev states(except 8x) down, so that BOOST STATE = MAX NORMAL STATE, effectively giving you 200Mhz+800Mhz more when running maxed(see cpumax script)
+tested on kernel 4.10-rc6
 (note regIndex, datahi and datalo had to be kept in their original positions! in that array struct of allpsi, else crashes! due to BUGON for good reason!)
 
 
@@ -13,7 +14,7 @@ also tested on 4.6.0-rc7
 and on 4.9.0-g69973b8
 fixed patch for: v4.10-rc2
 
-This patch will undervolt and at the same time overclock my CPU on the Z575 laptop
+This patch will undervolt and at the same time overclock my CPU on my Z575 laptop (you shouldn't use this yourself even if you have the same laptop, for it might not work!)
 
 re-released under UNLICENSE
 
@@ -114,13 +115,13 @@ index 77fcdb9f2775..d6a1713842a5 100644
 +//bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
 +const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
 +  {14, 0, 30.0, 1.3250, 18, 0xc0010064, 0x8000017d, 0x000024e0}, //P0, boost
-+  {6, 0, 22.0, 1.0875, 37, 0xc0010065, 0x80000140, 0x00004a60}, //P1, normal MAX (equals BOOST now)
-+  {4, 0, 20.0, 1.0250, 42, 0xc0010066, 0x80000137, 0x00005440}, //new P2, old P1, normal MAX
-+  {2, 0, 18.0, 0.9625, 47, 0xc0010067, 0x80000132, 0x00005e20}, //P3
-+  {1, 0, 17.0, 0.9375, 49, 0xc0010068, 0x8000012e, 0x00006210}, //P4
-+  {0, 0, 16.0, 0.9000, 52, 0xc0010069, 0x8000012b, 0x00006800}, //P5
-+  {5, 1, 14.0, 0.8625, 55, 0xc001006a, 0x80000127, 0x00006e51}, // new P6
-+//  {2, 1, 12.0, 0.8125, 59, 0xc001006a, 0x80000127, 0x00007621}, old P6
++  {14, 0, 30.0, 1.3250, 18, 0xc0010065, 0x80000140, 0x000024e0}, //P1
++  {6, 0, 22.0, 1.0875, 37, 0xc0010066, 0x80000137, 0x00004a60}, //P2
++  {4, 0, 20.0, 1.0250, 42, 0xc0010067, 0x80000132, 0x00005440}, //P3
++  {2, 0, 18.0, 0.9625, 47, 0xc0010068, 0x8000012e, 0x00005e20}, //P4
++  {1, 0, 17.0, 0.9375, 49, 0xc0010069, 0x8000012b, 0x00006210}, //P5
++  {0, 0, 16.0, 0.9000, 52, 0xc001006a, 0x80000127, 0x00006800}, //P6
++//  {5, 1, 14.0, 0.8625, 55, 0xc001006a, 0x80000127, 0x00006e51}, // old P6
 +  {0, 2,  8.0, 0.7125, 67, 0xc001006b, 0x80000125, 0x00008602}  //P7, normal
 +};
 +
