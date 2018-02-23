@@ -1,5 +1,6 @@
 Thumbs.db
 msr.ko
+cpuid.ko
 *.obj
 *.exe
 *.pdb
