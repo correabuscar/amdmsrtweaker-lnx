@@ -1,0 +1,112 @@
+z575 undervolting+overclocking
+preliminarily tested in win7 with k10stat:
+(08 march 2018)
+
+fid did freq  volt
+10   0  2600  1.2125
+1.2000 seems to work
+1.1875 seems to work too
+1.1750 seems to work...
+1.1625 one prime95.exe error on 3rd code
+
+fid did freq  volt
+12   0  2800  1.2750  (this is doing auto throttling to P7(actually it has only B0, P0->P6 and i dno if it chooses the lowest aka P6 because P1->P6 are all set the same by me to 800Mhz), just like for 3Ghz, dno why - maybe k10stat feature?)
+1.2625 works too
+1.2500 works too!
+1.2375 freeze hang!
+
+looks like 93degC is hit on HD6520G sensor but only 88degC on the main cpu for each core!
+throttling only happens for the 2800 one, not the 2600 one(and from below, not the 2700 one either!)
+
+all tests with DIS card enabled! and lasting usually less than 1 minute (due to temperature reaching high values, i manually stop it!)
+----
+testing with DIS card disabled (which is the norm):
+no more p7 throttling! and temp reached 93degC for cpu cores, compared to 92degC for HD6520G.
+before I manually stopped prime95.exe, ofc.
+1.2375 (for 2800Mhz) yielded now a prime95 error on core 3, instead of a freeze.
+
+there is a throttling to 800mhz again for 2900Mhz with:
+fid did freq  volt
+13    0 2900  1.3000
+
+1.2875 seems to work too, with that auto throttling! reaching 92degC...
+1.2750 seems to also work! seems to have reached 94degC rather quickly though!
+1.2625 is a core 3 fail in prime95
+
+next:
+fid did freq  volt
+11    0 2700  1.2000 core 3 fail in prime95
+
+1.2125 works, no throttle and no errors(ran for under 1 min, reached 92degC)
+1.2250 works too
+
+next:
+fid did freq  volt
+9     0 2500  1.2000 works
+
+1.1875 works too
+1.1750 seems to work too!
+1.1625 seems to also work!
+1.1500 well holy shiet, still works! that's funny because I'm using this voltage for 2400 !!!
+1.1375 failed core3 in prime95
+
+next: let's try the 2400 one which I already use with 1.1500 Volts; i wanna see when it fails in prime95
+fid did freq  volt
+8     0 2400  1.1375 works, ran for 1 minute til 87degC
+
+1.1250 works too, ran for 1min til 88degC; re-tested this for under 1 min with the other preim95 tests, seems ok; reached 90degC when I stopped it.
+1.1125 failed core3 in prime95 but I had to run it for 1min!
+
+
+next: retesting 3ghz
+fid did freq  volt
+14    0 3000  1.3250 seems ok, but there's that throttling to 800Mhz; also the HD6520G temp jumps high then way low way faster than the cpu one! it's almost as if they're faking the value! because I mean, it can't get from 92 to 56 in like a half a second, in real life, can it now?!
+redid first prime95 test (the max heat one) for 1+ mins, 95degC reached for cores; 94degC for HD6520G
+Seen a 63degC to 87degC when it jumped from 800Mhz to 2994(2995)Mhz respectively, for the AMD Radeon HD 6520G temperature sensor, in cpuid hwmonitor! So it adds 22 degC when clock is 2800+ inclusively?
+
+1.3125 one core3 error on prime95, after under 1 min of testing, max 88degC hit.
+
+next:
+fid did freq  volt
+7     0 2300  1.1125 works, rand for 2+ minutes
+
+1.1000 seems to also work, ran for 1+ minutes.
+1.0875 seems to also work, 1+ min.
+1.0750 seems to work, ran for 1+ min.
+1.0625 finally, logical cpu #3 (aka what i called "core 3") gave a rounding error or wtw, in prime95
+
+next:
+fid did freq  volt
+6     0 2200  1.0875 which is what I was using in plinux
+6     0 2200  1.0625 trying now: seems to work, ran for 3+ minutes!
+
+When setting new P-state values, or choosing profiles, always check the Info tab to see that they freqs and voltages were set; one will sometimes remain from before! so you'll have to reselect the same profile again to fix it, for example; also seen by cpuid hwmonitor!
+(i almost always did that in these tests!)
+
+1.0500 core 3 failed almost instantly, in prime95, so no good!
+1.0750 this is the one above the 1.0625 one, so the one I'd choose; tested for 2+ mins
+
+next:
+fid did freq  volt
+  5   0 2100  1.0500 works ok, ran for 2+ minutes. until 83degC
+
+1.0375 seems to work, ran for 1+ mins until 81degC
+(looks like cpu3 is a little behind(finishing the prime95 tests) probably because win7 is using it for kernel stuff! ie. task manager show kernel times are way higher for core3!)
+1.0250 works ok, ran for 2+mins, 81degC
+1.0125 core 3 fail, rounding! almost instantly!; so no good.
+
+next:
+fid did freq  volt
+  4   0 2000  1.0250  which is what I was using in plinux
+
+1.0125 seems to work, ran for less than 1 min
+1.0000 seems to work, ran for 2min, reached only 74degC
+0.9875 failed core3, but wasn't instant; ran for less than 1 min though, did not even reach 70degC(dno how much it was tho)
+
+
+next:
+fid did freq  volt
+ 28   1 2933  1.3250 seems to work, ran for 1+ mins. 89degC cpu, 92degC HD6520G, throttling to 800Mhz was happening + wildly varying temp on HD6520G sensor! as usual for 2800+ mhzs!
+
+1.3125 it froze! weird... sort of.
+well, if I wanted to be safe, I would avoid 2933 and 3000, even though they both seem stable at 1.3250, but neither at 1.3125; I should use instead 2900 as max!
