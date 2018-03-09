@@ -1,4 +1,7 @@
 #!/bin/bash
+#===========================
+#WARNING: this is set to run on startup on my z5, see: /usr/lib/systemd/system/underclocking_for_nongit_kernels.service
+#===========================
 
 sudo=''
 if [ `id -u` != 0 ] ; then
