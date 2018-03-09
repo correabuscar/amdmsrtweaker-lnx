@@ -2,6 +2,7 @@
 #===========================
 #WARNING: this is set to run on startup on my z5, see: /usr/lib/systemd/system/underclocking_for_nongit_kernels.service
 #===========================
+echo "This is '$0' script, starting..." >&2
 
 sudo=''
 if [ `id -u` != 0 ] ; then
