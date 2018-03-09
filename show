@@ -11,7 +11,7 @@ if [ `id -u` != 0 ] ; then
 fi
 
 
-$sudo modprobe msr
+$sudo modprobe msr || $sudo insmod ./msr.ko && echo 'good module msr!'
 #$sudo modprobe cpuid
 $sudo ./amdmsrt4myZ575
 $sudo rmmod msr
