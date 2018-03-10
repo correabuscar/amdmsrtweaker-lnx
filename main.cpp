@@ -346,10 +346,11 @@ void applyUnderclocking() {
 void showAndCheckCurrentPStateInfo() {
   bool unexpected=false;
   for (int i = 0; i < NUMPSTATES; i++) {
+    cout << "---" << endl; //an empty line for delineation
     const PStateInfo pi = ReadPState(i);
     const double voltage=vid2voltage(pi.VID);
 
-    cout << "  P" << i << ": " << pi.multi << "x at " << voltage << "V vid:"<< pi.VID << endl;
+    cout << "  P" << i << "(of 7): " << pi.multi << "x at " << voltage << "V vid:"<< pi.VID << " (this is actually "<< (0==i ? "B" : "P") << (0==i?0:i-1) << (0==i?"(of 0)":"(of 6)")<< " if using boost as B0)" << endl; //P0->P7, or B0,P0->P6  conventions
 
     if ((pi.multi != bootdefaults_psi[i].multi) && (pi.multi != allpsi[i].multi)) {
       unexpected=true;
