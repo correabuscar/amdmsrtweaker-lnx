@@ -57,14 +57,14 @@ static const double DIVISORS_12[] = { 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 1
 #define CPUMINVOLTAGEunderclocked 0.7125 //1.55 - 67*0.0125 = .7125
 
 const struct PStateInfo  __attribute__((unused)) bootdefaults_psi[NUMPSTATES]={//XXX: fyi only, do not use this!
-  {23.0, 1.325, 18}, //P0, boost
-  {14.0, 1.0625, 39}, //P1, normal
+  {23.0, 1.325, 18}, //P0, boost  aka B0
+  {14.0, 1.0625, 39}, //P1, normal; if boost is B0(instead of P0) then this is P0 not P1, thus there's no P7 in this convention scenario!
   {13.0, 1.025, 42},
   {12.0, 0.9875, 45},
   {11.0, 0.975, 46},
   {10.0, 0.9625, 47},
   {9.0, 0.95, 48},
-  {8.0, 0.925, 50} //P7, normal
+  {8.0, 0.925, 50} //P7, normal; or P6 if boost is B0
 };
 //bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
 const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
@@ -76,7 +76,7 @@ const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
   {28.0, 1.2625, 23}, //potentially expect auto-throttling to P7(or is it P2? had P2->P0 set to same 800Mhz during tests!) (or does it happen only in win7+k10stat?) for this and any above 2800Mhz! untested in linux; unde.txt
 //  {27.0, 1.2250, 26}, //no throttling for this and below 2700Mhz. untested in linux! unde.txt
   {26.0, 1.1875, 29}, //untested in linux; unde.txt
-//  {25.0, 1.1625, 31}, //tested in linux; this uses like 65Watts from PSU (and the DIS card is always disabled btw) [PSU that comes with Z575 is only 20V*4.5A=90Watts (made 2011.09) but it died(not during compiling but during just browsing!) on feb 13th 2018, so lasted 6 years (was using a max 2.4Ghz for quite a few months during chromium compiling w/o problems though); luckily I'm using a 120W one]; unde.txt
+//  {25.0, 1.1625, 31}, //tested in linux; this uses like 65Watts from PSU (and the DIS card is always disabled btw) [PSU that comes with Z575 is only 20V*4.5A=90Watts (made 2011.09) but it died(not during compiling but during just browsing!) on feb 13th 2018, so lasted 6 years (was using a max 2.4Ghz for quite a few months during chromium compiling w/o problems though); luckily I'm using an 120W one]; unde.txt
   {24.0, 1.1375, 33}, //untested in linux, yeah it's too high when compiling to have this be P7! unde.txt
 //  {24.0, 1.1500, 32}, //P0, normal max #ADDED now for testing (19 feb 2017) yeah this is stable, 08 march 2018!
 //  {22.0, 1.0875, 37}, //P0, normal max #ADDED now for testing
