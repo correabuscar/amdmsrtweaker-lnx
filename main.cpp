@@ -368,9 +368,9 @@ void showAndCheckCurrentPStateInfo() {
   }
 
   if (unexpected) {
-    //FIXME: uncomment:
-    //throw ExceptionWithMessage("P-state values unexpected(if inside virtualbox avoid running this program!)");
-    std::cerr << "!! not throwing here; FIXME: bring back throw" << endl;
+    //doneFIXME: uncomment:
+    throw ExceptionWithMessage("P-state values unexpected(if inside virtualbox avoid running this program!)");
+    //std::cerr << "!! not throwing here; FIXME: bring back throw" << endl;
   }
 }
 
