@@ -15,6 +15,25 @@ Changes to frequency will be reflected by:
 `cat /sys/devices/system/cpu/cpufreq/policy*/scaling_cur_freq`  
 `cat /proc/cpuinfo`  
 (tested kernel 4.16.0-rc4-g661e50bc8532, but forgot which kernel introduced it!)  
+To get accurate Khz results, try running `openssl speed sha512` first.  
+eg. idle:  
+  
+```bash
+$ cat /sys/devices/system/cpu/cpufreq/policy*/scaling_cur_freq
+2527605
+2570716
+2444120
+2612325
+```
+  
+and with 1 core in use (by `openssl speed sha512` in another terminal):  
+```bash
+$ cat /sys/devices/system/cpu/cpufreq/policy*/scaling_cur_freq
+2994707
+3002469
+3000750
+2999555
+```
 
 Compilation
 -----------
