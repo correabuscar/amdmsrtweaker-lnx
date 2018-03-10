@@ -34,6 +34,11 @@ $ cat /sys/devices/system/cpu/cpufreq/policy*/scaling_cur_freq
 3000750
 2999555
 ```
+  
+or in MHz, continously:  
+```bash
+watch -d -n0.5 \( cat /proc/cpuinfo\|grep MHz \)
+```
 
 Compilation
 -----------
