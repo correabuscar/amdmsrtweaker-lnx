@@ -9,7 +9,12 @@ Please do not use this one but instead, look at the original repo. which is mean
 
 
 
-Changes to frequency will not be reflected by /proc/cpuinfo, but a quick benchmark such as "openssl speed sha1" should show a speed difference.
+Changes to frequency will not be reflected by `sudo cat /sys/devices/system/cpu/cpufreq/policy*/cpuinfo_cur_freq`, but a quick benchmark such as "openssl speed sha1" should show a speed difference.  
+
+Changes to frequency will be reflected by:  
+`cat /sys/devices/system/cpu/cpufreq/policy*/scaling_cur_freq`  
+`cat /proc/cpuinfo`  
+(tested kernel 4.16.0-rc4-g661e50bc8532, but forgot which kernel introduced it!)  
 
 Compilation
 -----------
