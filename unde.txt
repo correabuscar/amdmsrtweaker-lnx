@@ -84,7 +84,7 @@ When setting new P-state values, or choosing profiles, always check the Info tab
 (i almost always did that in these tests!)
 
 1.0500 core 3 failed almost instantly, in prime95, so no good!
-1.0750 this is the one above the 1.0625 one, so the one I'd choose; tested for 2+ mins
+1.0750 this is the one above the 1.0625 one, so the one I'd choose for 2200; tested for 2+ mins
 
 next:
 fid did freq  volt

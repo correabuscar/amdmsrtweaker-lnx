@@ -70,17 +70,20 @@ const struct PStateInfo  __attribute__((unused)) bootdefaults_psi[NUMPSTATES]={/
 const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
   //to see how to compute VID (the last value, that is) seek to the beginning of this file! shift+3 on this word: VID  (in vim) and press 'n' one more time
   {30.0, 1.3250, 18}, //P0, boost
-  {30.0, 1.3250, 18}, //P1, //96degC and seg fault during kernel build! - DON'T do this! might work with cpuvary! #added3  sort of untested in linux - unsure if it(boost) ever activated! looks like this uses 85Watts from PSU when 100% cpu usage during gcc compiling, and max 23Watts when idle.
-//  {22.0, 1.0875, 37}, //P0, boost
-  {29.0, 1.2875, 21}, //untested in linux but it's 2nd step from the preliminary fail (see unde.txt)
-  {28.0, 1.2625, 23}, //potentially expect auto-throttling to P7(or is it P2? had P2->P0 set to same 800Mhz during tests!) (or does it happen only in win7+k10stat?) for this and any above 2800Mhz! untested in linux
-  {27.0, 1.2250, 26}, //no throttling for this and below 2700Mhz. untested in linux!
-  {26.0, 1.1875, 29}, //untested in linux
-  {25.0, 1.1625, 31}, //untested in linux; this uses like 65Watts from PSU (and the DIS card is always disabled btw) [PSU that comes with Z575 is only 20V*4.5A=90Watts (made 2011.09) but it died(not during compiling but during just browsing!) on feb 13th 2018, so lasted 6 years (was using a max 2.4Ghz for quite a few months during chromium compiling w/o problems though); luckily I'm using a 120W one]
-//  {24.0, 1.1375, 33} //untested in linux, yeah it's too high when compiling to have this be P7!
+  {30.0, 1.3250, 18}, //P1, //96degC and seg fault during kernel build! - DON'T do this! might work with cpuvary! #added3  sort of untested in linux - unsure if it(boost) ever activated! looks like this uses 85Watts from PSU when 100% cpu usage during gcc compiling, and max 23Watts when idle.; unde.txt
+//  {22.0, 1.0875, 37}, //P0, boost; old
+//  {29.0, 1.2875, 21}, //untested in linux but it's 2nd step from the preliminary fail (see unde.txt)
+  {28.0, 1.2625, 23}, //potentially expect auto-throttling to P7(or is it P2? had P2->P0 set to same 800Mhz during tests!) (or does it happen only in win7+k10stat?) for this and any above 2800Mhz! untested in linux; unde.txt
+//  {27.0, 1.2250, 26}, //no throttling for this and below 2700Mhz. untested in linux! unde.txt
+  {26.0, 1.1875, 29}, //untested in linux; unde.txt
+//  {25.0, 1.1625, 31}, //tested in linux; this uses like 65Watts from PSU (and the DIS card is always disabled btw) [PSU that comes with Z575 is only 20V*4.5A=90Watts (made 2011.09) but it died(not during compiling but during just browsing!) on feb 13th 2018, so lasted 6 years (was using a max 2.4Ghz for quite a few months during chromium compiling w/o problems though); luckily I'm using a 120W one]; unde.txt
+  {24.0, 1.1375, 33}, //untested in linux, yeah it's too high when compiling to have this be P7! unde.txt
 //  {24.0, 1.1500, 32}, //P0, normal max #ADDED now for testing (19 feb 2017) yeah this is stable, 08 march 2018!
 //  {22.0, 1.0875, 37}, //P0, normal max #ADDED now for testing
+  {22.0, 1.0750, 38}, //unde.txt
 //  {20.0, 1.0250, 42}, //P1, normal
+  {21.0, 1.0375, 41}, //unde.txt
+//  {20.0, 1.0125, 43}, //unde.txt
 //  {18.0, 0.9625, 47},
 //  {17.0, 0.9375, 49},
 ////  {16.0, 0.9, 52}, //temp removed for the 3ghz P1 #removed3
