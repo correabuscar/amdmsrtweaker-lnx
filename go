@@ -3,6 +3,10 @@
 #WARNING: this is set to run on startup on my z5, see: /usr/lib/systemd/system/underclocking_for_nongit_kernels.service
 #===========================
 echo "This is '$0' script, starting..." >&2
+#doneFIXME: remove:  (because too lazy / didn't want to remove kernel arg instead)
+#echo "Script '$0' temporarily disabled (which means kernel arg 'CPUunderclocking' is ignored), exiting..." >&2
+#exit 0
+#echo "not reached '$0'"
 
 sudo=''
 if [ `id -u` != 0 ] ; then
