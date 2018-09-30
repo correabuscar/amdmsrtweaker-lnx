@@ -9,7 +9,7 @@ echo "This is '$0' script, starting..." >&2
 #echo "not reached '$0'"
 
 sudo=''
-if [ `id -u` != 0 ] ; then
+if [ "$(id -u)" != 0 ] ; then
   echo "!! You're not root, using sudo..."
 #    echo "you are not root! press a key, not shift/ctrl/alt"
 #    read -n 1 -s
@@ -37,9 +37,9 @@ cmd='CPUunderclocking'
 #  exit 0
 #fi
 if ! $sudo grep --color=always -i "$cmd" /proc/cmdline; then
-	#sudo not really needed above, on Arch, but only on gentoo with hardened kernel!
+  #sudo not really needed above, on Arch, but only on gentoo with hardened kernel(because it doesn't have read access to /proc/cmdline)!
   echo "!! CPU underclocking is not enabled (lacks kernel cmdline '$cmd')"
-  if test "0$@" != "0force"; then
+  if test "0$*" != "0force"; then
     exit 0
   fi
 fi

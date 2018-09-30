@@ -69,10 +69,12 @@ const struct PStateInfo  __attribute__((unused)) bootdefaults_psi[NUMPSTATES]={/
 //bootdefaults_psi;//prevent -Wunused-variable warning; nvm, got statement has no effect  warning. What I actually need is:  __attribute__((unused))  src: https://stackoverflow.com/questions/15053776/how-do-you-disable-the-unused-variable-warnings-coming-out-of-gcc
 const struct PStateInfo allpsi[NUMPSTATES]={//stable underclocking for my CPU:
   //to see how to compute VID (the last value, that is) seek to the beginning of this file! shift+3 on this word: VID  (in vim) and press 'n' one more time
-  {30.0, 1.3250, 18}, //P0, boost
-  {30.0, 1.3250, 18}, //P1, //96degC and seg fault during kernel build! - DON'T do this! might work with cpuvary! #added3  sort of untested in linux - unsure if it(boost) ever activated! looks like this uses 85Watts from PSU when 100% cpu usage during gcc compiling, and max 23Watts when idle.; unde.txt
+//  {30.0, 1.3250, 18}, //P0, boost
+//  {30.0, 1.3250, 18}, //P1, //96degC and seg fault during kernel build! - DON'T do this! might work with cpuvary! #added3  sort of untested in linux - unsure if it(boost) ever activated! looks like this uses 85Watts from PSU when 100% cpu usage during gcc compiling, and max 23Watts when idle.; unde.txt
+//  XXX: disabling 30 aka 3GHz because i remember it failing in win7, vaguely, but more importantly I got a general protection fault in zstd code in linux, an oops, and it made zero sized files! so to be super sure, I must disable this one! it's the only unsure thing in this whole overclocking!
 //  {22.0, 1.0875, 37}, //P0, boost; old
-//  {29.0, 1.2875, 21}, //untested in linux but it's 2nd step from the preliminary fail (see unde.txt)
+  {29.0, 1.2875, 21}, //P0 boost; untested in linux but it's 2nd step from the preliminary fail (see unde.txt)
+  {29.0, 1.2875, 21}, //untested in linux but it's 2nd step from the preliminary fail (see unde.txt)
   {28.0, 1.2625, 23}, //potentially expect auto-throttling to P7(or is it P2? had P2->P0 set to same 800Mhz during tests!) (or does it happen only in win7+k10stat?) for this and any above 2800Mhz! untested in linux; unde.txt
 //  {27.0, 1.2250, 26}, //no throttling for this and below 2700Mhz. untested in linux! unde.txt
   {26.0, 1.1875, 29}, //untested in linux; unde.txt
