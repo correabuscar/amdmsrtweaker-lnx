@@ -19,7 +19,7 @@ datalo can be changed and it depends on the speeds; but regIndex and datahi must
 
 
 modifying this likely requires you to use the data from amdmsrtweaker-lnx eg. from ./show (assuming ./go works well for you - which is what you would use for tests before updating the kernel code with the new clocking values)
-https://github.com/xftroxgpx/amdmsrtweaker-lnx
+https://github.com/CExftNSroxORgpxED/amdmsrtweaker-lnx
 
 re-released under UNLICENSE
 
