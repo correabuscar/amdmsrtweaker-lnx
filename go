@@ -55,7 +55,8 @@ $sudo cpupower frequency-set --related --governor userspace --min 800MHz --max 8
 #cpufreq-set -g conservative -c 2
 #cpufreq-set -g conservative -c 3
 
-$sudo modprobe msr || $sudo insmod ./msr.ko && echo 'good module msr!'
+$sudo "$(cat /proc/sys/kernel/modprobe || echo modprobe)" msr || $sudo insmod ./msr.ko && echo 'good module msr!'
+#cat /proc/sys/kernel/modprobe || echo modprobe  this yields '/sbin/modprobe' or if that fails, just 'modprobe'
 #$sudo modprobe cpuid
 #echo before was:
 #"${scriptdir}/amdmsrt"
