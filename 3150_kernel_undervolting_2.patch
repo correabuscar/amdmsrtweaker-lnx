@@ -1,5 +1,7 @@
 This patch will undervolt and at the same time overclock my CPU on the Z575 laptop, happens only when kernel boot arg is 'CPUunderclocking' !
 
+ 2020 nov, switched to 800Mhz lowest instead of 1.4G
+
  30 sept 2018, reduced max from 3G to 2.9G, worked well thus far(09jan2020) with cpuvary 0.0.24 temp between 76..78 degC (MAXTEMP=78 THRESH=2 sleeptime=0.5)
 
  10 march 2018, more stable high clocks for the 84degC temperature threshold of current cpuvary script
@@ -121,7 +123,7 @@ index 084c8b3a2681..3af942f908e7 100644
 +//x can be changed and they depend on each other somehow
 +//y must not be changed! so if you shift rows up, you have to correct the y to ensure beforechange_allpsi[anyi].y == afterchange_allpsi[anyi].y   where y can be any of: datahi or regIndex fields!
 +//fid did multi voltage vid regIndex    datahi      datalo
-+//  {14, 0, 30.0, 1.3250, 18, 0xc0010064, 0x8000017d, 0x000024e0}, //P0, boost; note: 3GHz here is unstable! do not use it! i remember failing once in win7 and possibly the oops in 4.19-rc5 kernel in zstd code (general protection fault) which caused lots of btrfs files to become 0 bytes.
++//  {14, 0, 30.0, 1.3250, 18, 0xc0010064, 0x8000017d, 0x000024e0}, //P0, boost; note: 3GHz here is unstable! do not use it! i remember failing once in win7 and possibly the oops in 4.19-rc5 kernel in zstd code (general protection fault) which caused lots of btrfs files to become 0 bytes(because they weren't flushed to disk, hence why now commit=10 instead of =300)
 +//  {14, 0, 30.0, 1.3250, 18, 0xc0010065, 0x80000140, 0x000024e0}, //P1,
 +  {13, 0, 29.0, 1.2875, 21, 0xc0010064, 0x8000017d, 0x00002ad0}, //P0, boost
 +  {13, 0, 29.0, 1.2875, 21, 0xc0010065, 0x80000140, 0x00002ad0}, //P1,
@@ -130,9 +132,9 @@ index 084c8b3a2681..3af942f908e7 100644
 +  {8, 0, 24.0, 1.1375, 33, 0xc0010068, 0x8000012e, 0x00004280}, //P4
 +  {6, 0, 22.0, 1.0750, 38, 0xc0010069, 0x8000012b, 0x00004c60}, //P5
 +  {5, 0, 21.0, 1.0375, 41, 0xc001006a, 0x80000127, 0x00005250}, //P6
-+  {5, 1, 14.0, 0.8625, 55, 0xc001006b, 0x80000125, 0x00006e51} //P7 note: compute VID like this: $ volts=0.8625; echo -n "VID="; echo "define trunc(x) { auto s; s=scale; scale=0; x=x/1; scale=s; return x } 124 - trunc($volts / 0.0125 + 0.5)" | bc -l
-+//  {5, 1, 14.0, 0.8625, 55, 0xc001006a, 0x80000127, 0x00006e51}, // older P6
-+// , {0, 2,  8.0, 0.7125, 67, 0xc001006b, 0x80000125, 0x00008602}  //old P7, normal
++//  {5, 1, 14.0, 0.8625, 55, 0xc001006b, 0x80000125, 0x00006e51} //P7 note: compute VID like this: $ volts=0.8625; echo -n "VID="; echo "define trunc(x) { auto s; s=scale; scale=0; x=x/1; scale=s; return x } 124 - trunc($volts / 0.0125 + 0.5)" | bc -l
++//  {5, 1, 14.0, 0.8625, 55, 0xc001006a, 0x80000127, 0x00006e51}, // older P6, careful this was P6 not P7!
++  {0, 2,  8.0, 0.7125, 67, 0xc001006b, 0x80000125, 0x00008602}  //old P7, normal, at 800Mhz
 +};
 +
 +static u32 __init GetBits(u64 value, unsigned char offset, unsigned char numBits) {

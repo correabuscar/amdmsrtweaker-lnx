@@ -4,7 +4,7 @@ amdmsrtweaker-lnx
 amdmsrt (amdmsrtweaker-lnx) is a Linux port of the AmdMsrTweaker tool written by Martin Kinkelin and extended by Marcus Pollice.
 
 ======
-The current version that you're looking at is modified by CExftNSroxORgpxED and is meant to run only on my own laptop!
+The current version that you're looking at is modified by CExftNSroxORgpxED(prev.ver.of me(deleted) that I didn't wanna mention, but too late now) and is meant to run only on my own laptop!  
 Please do not use this one but instead, look at the original repo. which is meant to work generally: https://github.com/johkra/amdmsrtweaker-lnx  
 
 
@@ -56,6 +56,6 @@ See the file "readme.txt" for usage examples. The program has to executed as roo
 License
 -------
 
-This was originally under GNU GPL (see oldLICENSE file), however my modifications/additions etc. are under UNLICENSE and/or CC0 (ie. public domain)
+This was originally under GNU GPL (see oldLICENSE file), however my modifications/additions etc. are under UNLICENSE and/or CC0 (ie. public domain) and/or GNU GPL and/or MIT and/or Apache v2.  
 
 
